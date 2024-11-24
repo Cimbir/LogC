@@ -3,42 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temporary HTML File</title>
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="stylesheet" href="./static/index.css">
 </head>
 <body>
-    <h1>Welcome to My Temporary HTML File</h1>
-    <p>This is a placeholder for your content.</p>
+    <header>
+        <nav>
+            <a href="/">LogC</a>
+            <a href="/about">New</a>
+            <a href="/contact">Loggin</a>
+        </nav>
+    </header>
+    <main>
+        <div id="container">
+            <section id="log-history">
 
-    <button id="myButton">Click Me</button>
-    <button id="myGetButton">Send GET Request</button>
+            </section>
+            <section id="log-view">
+                <button id="log-button">Send Log</button>
 
-    <script>
-        document.getElementById('myGetButton').addEventListener('click', function() {
-            fetch('/tmp', {
-                method: 'GET',
-            })
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('response').innerText = data;
-            });
-        });
-    </script>
-    <p id="response"></p>
-
-    <script>
-        document.getElementById('myButton').addEventListener('click', function() {
-            fetch('/tmp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'event=button_clicked'
-            })
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('response').innerText = data;
-            });
-        });
-    </script>
+                <script>
+                document.getElementById('log-button').addEventListener('click', function() {
+                    fetch('/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ message: 'Log message' })
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log(data))
+                    .catch(error => console.error('Error:', error));
+                });
+                </script>
+            </section>
+        </div>
+    </main>
 </body>
 </html>
