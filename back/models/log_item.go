@@ -20,6 +20,7 @@ type LogItem struct {
 }
 
 type Log struct {
+	Title string
 	Date  time.Time
 	Items []LogItem
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}}</title>
+    <title>LogC</title>
     <link rel="stylesheet" href="./static/style.css">
     <link rel="stylesheet" href="./static/index.css">
 </head>
@@ -11,34 +11,43 @@
     <header>
         <nav>
             <a href="/">LogC</a>
-            <a href="/about">New</a>
+            <a href="/add">New</a>
             <a href="/contact">Loggin</a>
         </nav>
     </header>
     <main>
         <div id="container">
-            <section id="log-history">
-
+            <section id="log-timeline">
+                {{range $index, $log := .Logs}}
+                <div class="log-timeline-item" id={{$index}}>
+                    <p>{{$log}}</p>
+                </div>
+                {{end}}
             </section>
             <section id="log-view">
-                <button id="log-button">Send Log</button>
-
-                <script>
-                document.getElementById('log-button').addEventListener('click', function() {
-                    fetch('/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ message: 'Log message' })
-                    })
-                    .then(response => response.json())
-                    .then(data => console.log(data))
-                    .catch(error => console.error('Error:', error));
-                });
-                </script>
+                {{range $index, $log := .Logs}}
+                <div class="log-view-item" id="v{{$index}}" hidden>
+                    {{range $item := $log.Items}}
+                    <p>{{$item}}</p>
+                    {{end}}
+                </div>
+                {{end}}
             </section>
         </div>
     </main>
+
+    <script>
+        document.querySelectorAll('.log-timeline-item').forEach(item => {
+            item.addEventListener('click', event => {
+                const id = event.currentTarget.id;
+                const logView = document.getElementById('log-view');
+
+                logView.querySelectorAll('.log-view-item').forEach(viewItem => {
+                    viewItem.hidden = true;
+                });
+                document.getElementById('v' + id).hidden = false;
+            });
+        });
+    </script>
 </body>
 </html>

@@ -22,3 +22,21 @@ func SaveLogsToFile(log models.Log) error {
 
 	return nil
 }
+func ReadLogsFromFile() []models.Log {
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0666)
+	if err != nil {
+		return nil
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	logs := []models.Log{}
+	for {
+		var log models.Log
+		if err := decoder.Decode(&log); err != nil {
+			break
+		}
+		logs = append(logs, log)
+	}
+	return logs
+}

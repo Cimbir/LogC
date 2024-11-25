@@ -6,18 +6,20 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
-	"time"
 )
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		// Define the data to pass to the template
 		data := struct {
-			Title  string
-			Header string
+			Logs []models.Log
 		}{
-			Title:  "LogC",
-			Header: "Welcome to LogC",
+			Logs: code.ReadLogsFromFile(),
+		}
+
+		// Reverse the order of logs
+		for i, j := 0, len(data.Logs)-1; i < j; i, j = i+1, j-1 {
+			data.Logs[i], data.Logs[j] = data.Logs[j], data.Logs[i]
 		}
 
 		// Parse and execute the template
@@ -33,18 +35,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if r.Method == http.MethodPost {
 		// Handle POST request
-		l := models.Log{
-			Date: time.Now(),
-			Items: []models.LogItem{
-				{
-					Type:    models.Text,
-					Content: r.PostFormValue("content"),
-					Order:   1,
-				},
-			},
-		}
-
-		code.SaveLogsToFile(l)
 	} else {
 	}
 }
