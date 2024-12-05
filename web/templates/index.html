@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogC</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <link rel="stylesheet" href="./static/css/index.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/">LogC</a>
+            <a href="/add">New</a>
+            <a href="/contact">Loggin</a>
+        </nav>
+    </header>
+    <main>
+        <div id="container">
+            <section id="log-timeline">
+                <ul class="rb">
+                    {{range $index, $log := .Logs}}
+                    <li class="rb-item log-timeline-item" id={{$index}} ng-repeat="itembx">
+                        <div class="timestamp">
+                            {{$log.Date.Format "2006-01-02 15:04:05"}}
+                        </div>
+                        <div class="item-title">{{$log.Title}}</div>
+                    </li>
+                    {{end}}
+                </ul>  
+            </section>
+            <section id="log-view">
+                {{range $index, $log := .Logs}}
+                <div class="log-view-item" id="v{{$index}}" hidden>
+                    <h1 class="log-view-title log-view-main-title">
+                        {{$log.Title}}
+                    </h1>
+                    {{range $item := $log.Items}}
+                        {{if eq $item.Type 0}}
+                        <p class="log-view-text">
+                            {{$item.Content}}
+                        </p>
+                        {{else if eq $item.Type 1}}
+                        <img src="{{$item.Content}}" alt="Image">
+                        {{else if eq $item.Type 2}}
+                        <h3 class="log-view-title">
+                            {{$item.Content}}
+                        </h3>
+                        {{end}}
+                    {{end}}
+                </div>
+                {{end}}
+            </section>
+        </div>
+    </main>
+
+    <script>
+        document.querySelectorAll('.log-timeline-item').forEach(item => {
+            item.addEventListener('click', event => {
+                const id = event.currentTarget.id;
+                const logView = document.getElementById('log-view');
+
+                logView.querySelectorAll('.log-view-item').forEach(viewItem => {
+                    viewItem.hidden = true;
+                });
+                document.getElementById('v' + id).hidden = false;
+            });
+        });
+    </script>
+</body>
+</html>
