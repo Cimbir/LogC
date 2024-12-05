@@ -5,7 +5,6 @@ import (
 	"LogC/internal/services"
 	"LogC/internal/utils"
 	"net/http"
-	"path/filepath"
 )
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,8 +29,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Parse and execute the template
-		path := filepath.Join("web", "templates", "index.html")
-		utils.OpenPage(path, data, w)
+		utils.OpenPage("index.html", data, w)
 	} else if r.Method == http.MethodPost {
 		// Handle POST request
 	} else {

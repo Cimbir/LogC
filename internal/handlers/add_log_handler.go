@@ -5,7 +5,6 @@ import (
 	"LogC/internal/services"
 	"LogC/internal/utils"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -17,8 +16,7 @@ func AddLogHandler(w http.ResponseWriter, r *http.Request) {
 		}{}
 
 		// Parse and execute the template
-		path := filepath.Join("web", "templates", "add_log.html")
-		utils.OpenPage(path, data, w)
+		utils.OpenPage("add_log.html", data, w)
 	} else if r.Method == http.MethodPost {
 		// Handle POST request
 		amount_str := r.FormValue("item-amount")
