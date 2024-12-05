@@ -3,7 +3,7 @@
 {{end}}
 
 {{define "content"}}
-<form action="/add" method="POST">
+<form action="/add" method="POST" enctype="multipart/form-data">
     <input id="title" type="text" name="title" placeholder="Title" required><br>
     <div id="textareaContainer"></div>
     <button type="button" id="addTextareaBtn">Add Description</button>
@@ -26,23 +26,23 @@
         var typeInp;
         if (document.getElementById('inputType').value == 'text') {
             contentInp = document.createElement('textarea');
-            contentInp.name = 'item' + id;
             typeInp = document.createElement('input');
-            typeInp.name = 'type' + id;
             typeInp.value = 'Text';
-            typeInp.type = 'hidden';
         } else if (document.getElementById('inputType').value == 'image') {
             contentInp = document.createElement('input');
             contentInp.type = 'file';
+            typeInp = document.createElement('input');
+            typeInp.value = 'Image';
         } else if(document.getElementById('inputType').value == 'title') {
             contentInp = document.createElement('input');
-            contentInp.name = 'item' + id;
             contentInp.placeholder = 'title';
             typeInp = document.createElement('input');
-            typeInp.name = 'type' + id;
             typeInp.value = 'Title';
-            typeInp.type = 'hidden';
         }
+        contentInp.name = 'item' + id;
+        typeInp.name = 'type' + id;
+        typeInp.type = 'hidden';
+
         var deleteBtn = document.createElement('button');
         deleteBtn.textContent = 'Delete';
         deleteBtn.type = 'button';

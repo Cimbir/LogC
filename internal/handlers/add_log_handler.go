@@ -4,6 +4,8 @@ import (
 	"LogC/internal/models"
 	"LogC/internal/services"
 	"LogC/internal/utils"
+	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -29,17 +31,42 @@ func AddLogHandler(w http.ResponseWriter, r *http.Request) {
 		var logs []models.LogItem
 		for i := 0; i < amount; i++ {
 			// Handle each log item
-			cur_content := r.FormValue("item" + strconv.Itoa(i))
+			cur_content := ""
 			cur_type_str := r.FormValue("type" + strconv.Itoa(i))
-			if cur_content == "" {
+			if cur_type_str == "" {
 				continue
 			}
 			cur_type := models.Text
 			if cur_type_str == models.LogItemType.String(models.Text) {
+				cur_content = r.FormValue("item" + strconv.Itoa(i))
 				cur_type = models.Text
 			} else if cur_type_str == models.LogItemType.String(models.Image) {
+				file, _, err := r.FormFile("item" + strconv.Itoa(i))
+				if err != nil {
+					http.Error(w, "Invalid file", http.StatusBadRequest)
+					fmt.Println(err)
+					return
+				}
+				defer file.Close()
+
+				var cur_data models.LogData
+				cur_data.Data, err = io.ReadAll(file)
+				if err != nil {
+					http.Error(w, "Invalid file", http.StatusBadRequest)
+					fmt.Println(err)
+					return
+				}
+				added_id, err := services.SaveImageToDB(cur_data)
+				if err != nil {
+					http.Error(w, "Invalid file", http.StatusBadRequest)
+					fmt.Println(err)
+					return
+				}
+				cur_content = strconv.Itoa(added_id)
+
 				cur_type = models.Image
 			} else if cur_type_str == models.LogItemType.String(models.Title) {
+				cur_content = r.FormValue("item" + strconv.Itoa(i))
 				cur_type = models.Title
 			}
 			cur_log := models.LogItem{Content: cur_content, Type: cur_type, Order: i}

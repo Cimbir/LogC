@@ -28,7 +28,7 @@
                     {{$item.Content}}
                 </p>
                 {{else if eq $item.Type 1}}
-                <img src="{{$item.Content}}" alt="Image">
+                <img class="log-view-image" src="/image?id={{$item.Content}}" alt="Image">
                 {{else if eq $item.Type 2}}
                 <h3 class="log-view-title">
                     {{$item.Content}}

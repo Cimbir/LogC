@@ -14,6 +14,11 @@ func (lt LogItemType) String() string {
 	return [...]string{"Text", "Image", "Title"}[lt]
 }
 
+type LogData struct {
+	Id   int
+	Data []byte
+}
+
 type LogItem struct {
 	Id      int
 	LogId   int

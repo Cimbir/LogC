@@ -62,9 +62,15 @@ func InitDB() error {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		log_id INTEGER,
 		type INTEGER,
-		content BLOB,
+		content STRING,
 		"order" INTEGER,
 		FOREIGN KEY (log_id) REFERENCES logs(id)
+	);
+	CREATE TABLE IF NOT EXISTS log_data (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		log_item_id INTEGER,
+		data BLOB,
+		FOREIGN KEY (log_item_id) REFERENCES log_items(id)
 	);`
 	_, err = db.Exec(createTableQuery)
 	if err != nil {
@@ -157,4 +163,46 @@ func ReadLogsFromDB() ([]models.Log, error) {
 	}
 
 	return logs, nil
+}
+
+func SaveImageToDB(data models.LogData) (int, error) {
+	db, err := OpenDB()
+	if err != nil {
+		return -1, err
+	}
+	defer db.Close()
+	tx, err := db.Begin()
+	if err != nil {
+		return -1, err
+	}
+
+	insertQuery := `INSERT INTO log_data (data) VALUES (?)`
+	result, err := tx.Exec(insertQuery, data.Data)
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	return int(id), tx.Commit()
+}
+
+func GetImageByID(id int) (models.LogData, error) {
+	var res models.LogData
+	db, err := OpenDB()
+	if err != nil {
+		return res, err
+	}
+	defer db.Close()
+
+	row := db.QueryRow(`SELECT id, data FROM log_data WHERE id = ?`, id)
+	if err := row.Scan(&res.Id, &res.Data); err != nil {
+		return res, err
+	}
+
+	return res, nil
 }

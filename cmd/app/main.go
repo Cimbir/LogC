@@ -27,6 +27,7 @@ func main() {
 	// Registering the handler functions
 	http.HandleFunc("/", handlers.IndexHandler)
 	http.HandleFunc("/add", handlers.AddLogHandler)
+	http.HandleFunc("/image", handlers.ImageHandler)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 	fmt.Println("Server is running at 8090 port.")
 	http.ListenAndServe(":8090", nil)

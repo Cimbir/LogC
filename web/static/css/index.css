@@ -2,10 +2,15 @@
     display: flex;
     justify-content: space-between;
     height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-color) var(--secondary-color);
 }
 
 #log-view {
-    width: 100%;
+    z-index: 1;
+    margin-left: auto;
+    width: 80%;
     height: 100%;
     padding: 10px;
 }
@@ -28,13 +33,22 @@
     padding: 5px;
 }
 
+.log-view-image {
+    height: 600px;
+    display: block;
+    margin: 0 auto;
+}
+
 /* --------------------------------- */
 
 #log-timeline {
-    width: 20%;
+    z-index: 100;
+    width: 17%;
     height: 100%;
     background-color: var(--secondary-color);
     padding: 20px;
+    position: fixed;
+    bottom: 0;
 }
 
 #log-timeline ul.rb {
