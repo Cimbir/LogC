@@ -10,11 +10,18 @@ import (
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
+		logs, err := services.ReadLogsFromDB()
+		if err != nil {
+			http.Error(w, "Error reading logs", http.StatusInternalServerError)
+			return
+		}
+
 		// Define the data to pass to the template
 		data := struct {
 			Logs []models.Log
 		}{
-			Logs: services.ReadLogsFromFile(),
+			//Logs: services.ReadLogsFromFile(),
+			Logs: logs,
 		}
 
 		// Reverse the order of logs

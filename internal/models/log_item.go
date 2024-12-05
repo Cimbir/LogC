@@ -15,12 +15,15 @@ func (lt LogItemType) String() string {
 }
 
 type LogItem struct {
+	Id      int
+	LogId   int
 	Type    LogItemType
 	Content string
 	Order   int
 }
 
 type Log struct {
+	Id    int
 	Title string
 	Date  time.Time
 	Items []LogItem

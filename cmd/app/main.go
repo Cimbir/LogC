@@ -2,6 +2,7 @@ package main
 
 import (
 	"LogC/internal/handlers"
+	"LogC/internal/services"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,6 +14,13 @@ func main() {
 	err := os.Chdir(filepath.Dir(os.Args[0]))
 	if err != nil {
 		fmt.Println("Error changing working directory:", err)
+		return
+	}
+
+	// Initialize the database
+	err = services.InitDB()
+	if err != nil {
+		fmt.Println("Error initializing the database:", err)
 		return
 	}
 

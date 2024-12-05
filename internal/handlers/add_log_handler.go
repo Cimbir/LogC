@@ -52,7 +52,8 @@ func AddLogHandler(w http.ResponseWriter, r *http.Request) {
 		date := time.Now()
 		log := models.Log{Title: title, Date: date, Items: logs}
 
-		services.SaveLogsToFile(log)
+		//services.SaveLogsToFile(log)
+		services.SaveLogsToDB(log)
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	} else {
