@@ -6,7 +6,7 @@ import (
 )
 
 type AppData struct {
-	logs      *store.DB[models.Log]
-	log_items *store.DB[models.LogItem]
-	log_data  *store.DB[models.LogData]
+	Logs       store.DB[models.Log]
+	LogItems   store.DB[models.LogItem]
+	LogDataCol store.DB[models.LogData]
 }

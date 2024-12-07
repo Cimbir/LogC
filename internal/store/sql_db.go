@@ -9,16 +9,16 @@ import (
 )
 
 const (
-	_dbFilename = "logs.db"
-	_logsTable  = "logs"
-	_itemsTable = "log_items"
-	_dataTable  = "log_data"
+	DBFilename = "logs.db"
+	LogsTable  = "logs"
+	ItemsTable = "log_items"
+	DataTable  = "log_data"
 )
 
-func InitDB(dbFilename string, logsTable string, itemsTable string, dataTable string) error {
+func InitDB(dbFilename string, logsTable string, itemsTable string, dataTable string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbFilename)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	createTableQuery := fmt.Sprintf(`
@@ -41,10 +41,10 @@ func InitDB(dbFilename string, logsTable string, itemsTable string, dataTable st
 	);`, logsTable, itemsTable, dataTable)
 	_, err = db.Exec(createTableQuery)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return db, nil
 }
 
 type SQLDB[T any] struct {

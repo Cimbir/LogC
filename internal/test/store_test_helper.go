@@ -10,9 +10,9 @@ import (
 )
 
 type teardown func()
-type setup func(*testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], teardown)
+type setupdb func(*testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], teardown)
 
-func AddTestHelper(t *testing.T, stp setup) {
+func AddTestHelper(t *testing.T, stp setupdb) {
 	logs, logItems, logData, td := stp(t)
 	defer td()
 
@@ -38,7 +38,7 @@ func AddTestHelper(t *testing.T, stp setup) {
 	}
 }
 
-func GetAllTestHelper(t *testing.T, stp setup) {
+func GetAllTestHelper(t *testing.T, stp setupdb) {
 	logs, logItems, logData, td := stp(t)
 	defer td()
 
@@ -76,7 +76,7 @@ func GetAllTestHelper(t *testing.T, stp setup) {
 	}
 }
 
-func GetByIDTestHelper(t *testing.T, stp setup) {
+func GetByIDTestHelper(t *testing.T, stp setupdb) {
 	logs, logItems, logData, td := stp(t)
 	defer td()
 
@@ -105,7 +105,7 @@ func GetByIDTestHelper(t *testing.T, stp setup) {
 	}
 }
 
-func ChangeTestHelper(t *testing.T, stp setup) {
+func ChangeTestHelper(t *testing.T, stp setupdb) {
 	logs, logItems, logData, td := stp(t)
 	defer td()
 
@@ -146,7 +146,7 @@ func ChangeTestHelper(t *testing.T, stp setup) {
 	}
 }
 
-func GetByFieldTestHelper(t *testing.T, stp setup) {
+func GetByFieldTestHelper(t *testing.T, stp setupdb) {
 	logs, logItems, logData, td := stp(t)
 	defer td()
 
@@ -175,7 +175,7 @@ func GetByFieldTestHelper(t *testing.T, stp setup) {
 	}
 }
 
-func RemoveTestHelper(t *testing.T, stp setup) {
+func RemoveTestHelper(t *testing.T, stp setupdb) {
 	logs, logItems, logData, td := stp(t)
 	defer td()
 

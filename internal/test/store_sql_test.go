@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func setupSqlTestDB(t *testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], teardown) {
+func SetupSQLTestDB(t *testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], teardown) {
 	db, err := sql.Open("sqlite3", "test_logs.db")
 	if err != nil {
 		t.Fatalf("Failed to open database: %v", err)
@@ -40,20 +40,20 @@ func setupSqlTestDB(t *testing.T) (store.DB[models.Log], store.DB[models.LogItem
 }
 
 func TestSQLAdd(t *testing.T) {
-	AddTestHelper(t, setupSqlTestDB)
+	AddTestHelper(t, SetupSQLTestDB)
 }
 func TestSQLGetAll(t *testing.T) {
-	GetAllTestHelper(t, setupSqlTestDB)
+	GetAllTestHelper(t, SetupSQLTestDB)
 }
 func TestSQLGetById(t *testing.T) {
-	GetByIDTestHelper(t, setupSqlTestDB)
+	GetByIDTestHelper(t, SetupSQLTestDB)
 }
 func TestSQLChange(t *testing.T) {
-	ChangeTestHelper(t, setupSqlTestDB)
+	ChangeTestHelper(t, SetupSQLTestDB)
 }
 func TestSQLGetByField(t *testing.T) {
-	GetByFieldTestHelper(t, setupSqlTestDB)
+	GetByFieldTestHelper(t, SetupSQLTestDB)
 }
 func TestSQLRemove(t *testing.T) {
-	RemoveTestHelper(t, setupSqlTestDB)
+	RemoveTestHelper(t, SetupSQLTestDB)
 }
