@@ -15,21 +15,21 @@ func (lt LogItemType) String() string {
 }
 
 type LogData struct {
-	Id   int
-	Data []byte
+	Id   int    `json:"id" db:"id"`
+	Data []byte `json:"data" db:"data"`
 }
 
 type LogItem struct {
-	Id      int
-	LogId   int
-	Type    LogItemType
-	Content string
-	Order   int
+	Id      int         `json:"id" db:"id"`
+	LogId   int         `json:"log_id" db:"log_id"`
+	Type    LogItemType `json:"type" db:"type"`
+	Content string      `json:"content" db:"content"`
+	Order   int         `json:"order" db:"order"`
 }
 
 type Log struct {
-	Id    int
-	Title string
-	Date  time.Time
-	Items []LogItem
+	Id    int       `json:"id" db:"id"`
+	Title string    `json:"title" db:"title"`
+	Date  time.Time `json:"date" db:"date"`
+	Items []LogItem `json:"items" db:"items"`
 }

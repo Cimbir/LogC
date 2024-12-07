@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 )
 
+type HandlerFunc func(http.ResponseWriter, *http.Request)
+
 func main() {
 	// Change the working directory to the root of the project
 	err := os.Chdir(filepath.Dir(os.Args[0]))
@@ -23,6 +25,8 @@ func main() {
 		fmt.Println("Error initializing the database:", err)
 		return
 	}
+
+	handler_wapper
 
 	// Registering the handler functions
 	http.HandleFunc("/", handlers.IndexHandler)
