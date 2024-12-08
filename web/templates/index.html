@@ -5,54 +5,62 @@
 {{define "content"}}
 <div id="container">
     <section id="log-timeline">
-        <ul class="rb">
-            {{range $index, $log := .Logs}}
-            <li class="rb-item log-timeline-item" id={{$index}} ng-repeat="itembx">
-                <div class="timestamp">
-                    {{$log.Date.Format "2006-01-02 15:04:05"}}
-                </div>
-                <div class="item-title">{{$log.Title}}</div>
-            </li>
-            {{end}}
+        <ul class="rb" id="timeline-list">
+            <!-- Timeline items will be added here -->
         </ul>  
     </section>
     <section id="log-view">
-        {{range $index, $log := .Logs}}
-        <div class="log-view-item" id="v{{$index}}" hidden>
-            <h1 class="log-view-title log-view-main-title">
-                {{$log.Title}}
-            </h1>
-            {{range $item := $log.Items}}
-                {{if eq $item.Type 0}}
-                <p class="log-view-text">
-                    {{$item.Content}}
-                </p>
-                {{else if eq $item.Type 1}}
-                <img class="log-view-image" src="/image?id={{$item.Content}}" alt="Image">
-                {{else if eq $item.Type 2}}
-                <h3 class="log-view-title">
-                    {{$item.Content}}
-                </h3>
-                {{end}}
-            {{end}}
-        </div>
-        {{end}}
+        <!-- Log details will be added here -->
     </section>
 </div>
 {{end}}
 
 {{define "script"}}
 <script>
-    document.querySelectorAll('.log-timeline-item').forEach(item => {
-        item.addEventListener('click', event => {
-            const id = event.currentTarget.id;
-            const logView = document.getElementById('log-view');
+    document.addEventListener('DOMContentLoaded', function() {
+        const timelineList = document.getElementById('timeline-list');
+        const logView = document.getElementById('log-view');
 
-            logView.querySelectorAll('.log-view-item').forEach(viewItem => {
-                viewItem.hidden = true;
-            });
-            document.getElementById('v' + id).hidden = false;
-        });
+        // Fetch logs from the API
+        fetch('/api/logs/get')
+            .then(response => response.json())
+            .then(logs => {
+                logs.forEach(log => {
+                    const logItem = document.createElement('li');
+                    logItem.className = 'rb-item log-timeline-item';
+                    logItem.id = log.id;
+                    //logItem.ng-repeat = 'itembx';
+                    logItem.innerHTML = `
+                        <div class="timestamp">${log.date}</div>
+                        <div class="item-title">${log.title}</div>
+                    `;
+                    timelineList.appendChild(logItem);
+
+                    // Add click event listener to fetch and display log details
+                    logItem.addEventListener('click', function() {
+                        fetch(`/api/logs/get/${log.id}`)
+                            .then(response => response.json())
+                            .then(logDetails => {
+                                logView.innerHTML = `
+                                    <div class="log-view-item" id="v${logDetails.id}">
+                                        <h1 class="log-view-title log-view-main-title">${logDetails.title}</h1>
+                                        ${logDetails.items.map(item => {
+                                            if (item.type === 0) {
+                                                return `<p class="log-view-text">${item.content}</p>`;
+                                            } else if (item.type === 1) {
+                                                return `<img class="log-view-image" src="/api/data/get/${item.content}" alt="Image">`;
+                                            } else if (item.type === 2) {
+                                                return `<h3 class="log-view-title">${item.content}</h3>`;
+                                            }
+                                        }).join('')}
+                                    </div>
+                                `;
+                            })
+                            .catch(error => console.error('Error fetching log details:', error));
+                    });
+                });
+            })
+            .catch(error => console.error('Error fetching logs:', error));
     });
 </script>
 {{end}}

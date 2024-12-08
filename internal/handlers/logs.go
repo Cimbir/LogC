@@ -3,6 +3,7 @@ package handlers
 import (
 	"LogC/internal/models"
 	"LogC/internal/utils"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -46,6 +47,8 @@ func SaveLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 	if c.Method() != "POST" {
 		return c.SendStatus(405)
 	}
+
+	fmt.Println(string(c.Body()))
 
 	var log models.Log
 	if err := c.BodyParser(&log); err != nil {

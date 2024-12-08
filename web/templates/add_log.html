@@ -3,7 +3,7 @@
 {{end}}
 
 {{define "content"}}
-<form action="/add" method="POST" enctype="multipart/form-data">
+<div id="log-inputs">
     <input id="title" type="text" name="title" placeholder="Title" required><br>
     <div id="textareaContainer"></div>
     <button type="button" id="addTextareaBtn">Add Description</button>
@@ -13,8 +13,8 @@
         <option value="title">Title</option>
     </select>
     <input type="number" name="item-amount" value="0" id="amount" hidden required><br>
-    <button type="submit">Log</button>
-</form>
+    <button id="add-log">Log</button>
+</div>
 {{end}}
 
 {{define "script"}}
@@ -27,17 +27,17 @@
         if (document.getElementById('inputType').value == 'text') {
             contentInp = document.createElement('textarea');
             typeInp = document.createElement('input');
-            typeInp.value = 'Text';
+            typeInp.value = '0';
         } else if (document.getElementById('inputType').value == 'image') {
             contentInp = document.createElement('input');
             contentInp.type = 'file';
             typeInp = document.createElement('input');
-            typeInp.value = 'Image';
+            typeInp.value = '1';
         } else if(document.getElementById('inputType').value == 'title') {
             contentInp = document.createElement('input');
             contentInp.placeholder = 'title';
             typeInp = document.createElement('input');
-            typeInp.value = 'Title';
+            typeInp.value = '2';
         }
         contentInp.name = 'item' + id;
         typeInp.name = 'type' + id;
@@ -56,6 +56,79 @@
         document.getElementById('textareaContainer').appendChild(newItemDiv);
         
         document.getElementById('amount').value = ++id;
+    });
+
+    async function readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]); // Get base64 string
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    document.getElementById('add-log').addEventListener('click', async function(event) {
+        event.preventDefault();
+
+        var log = {
+            title: document.getElementById('title').value,
+            date: new Date().toISOString(),
+            items: []
+        };
+
+        for (var i = 0; i < id; i++) {
+            typeEl = document.getElementsByName('type' + i)[0];
+            itemEl = document.getElementsByName('item' + i)[0];
+            
+            if (!typeEl || !itemEl) continue;
+
+            var item = {
+            type: parseInt(typeEl.value),
+            content: itemEl.value
+            };
+
+            if (typeEl.value == 1) {
+                var file = itemEl.files[0];
+                if (!file) continue;
+                try {
+                    const base64String = await readFileAsDataURL(file);
+                    item.content = base64String;
+
+                    const response = await fetch('/api/data/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ data: base64String })
+                    });
+
+                    const data = await response.json();
+                    item.content = data.id.toString();
+                    console.log('Success uploading data:', data);
+                } catch (error) {
+                    console.error('Error uploading data:', error);
+                    continue;
+                }
+            }
+
+            log.items.push(item);
+        }
+
+        fetch('/api/logs/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(log)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Success adding log:', data);
+            //window.location.href = '/';
+        })
+        .catch((error) => {
+            console.error('Error adding log:', error);
+        });
     });
 </script>
 {{end}}

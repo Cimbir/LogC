@@ -38,13 +38,18 @@ func main() {
 	_appdata.LogDataCol = store.NewSQLDB[models.LogData](db, store.DataTable)
 
 	// Wrapping the handler functions
-	handler_wapper := func(handler HandlerFunc) fiber.Handler {
+	handler_wrapper := func(handler HandlerFunc) fiber.Handler {
 		return func(c *fiber.Ctx) error {
 			return handler(c, &_appdata)
 		}
 	}
 
 	// Create a new Fiber instance
+	// engine := html.New("./web/templates", ".html")
+	// app := fiber.New(fiber.Config{
+	// 	Views:       engine,
+	// 	ViewsLayout: "web/layouts",
+	// })
 	app := fiber.New()
 
 	// Middleware
@@ -54,13 +59,17 @@ func main() {
 	// Define the routes
 	app.Static("/static", "./web/static")
 
+	// Render web
+	app.Get("/", handlers.RenderIndex)
+	app.Get("/add", handlers.RenderAdd)
+
 	// Logs
-	app.Get("/api/logs/get/:id?", handler_wapper(handlers.GetLog))
-	app.Post("/api/logs/add", handler_wapper(handlers.SaveLog))
+	app.Get("/api/logs/get/:id?", handler_wrapper(handlers.GetLog))
+	app.Post("/api/logs/add", handler_wrapper(handlers.SaveLog))
 
 	// Data
-	app.Get("/api/data/get/:id", handler_wapper(handlers.GetData))
-	app.Post("/api/data/add", handler_wapper(handlers.SaveData))
+	app.Get("/api/data/get/:id", handler_wrapper(handlers.GetData))
+	app.Post("/api/data/add", handler_wrapper(handlers.SaveData))
 
 	// Run the app
 	fmt.Println("Server is running at 8090 port.")
