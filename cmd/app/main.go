@@ -5,26 +5,53 @@ import (
 	"LogC/internal/models"
 	"LogC/internal/store"
 	"LogC/internal/utils"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/encryptcookie"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
 type HandlerFunc func(*fiber.Ctx, *utils.AppData) error
 
-func main() {
-	// Change the working directory to the root of the project
-	err := os.Chdir(filepath.Dir(os.Args[0]))
+func addAdmin(_appdata *utils.AppData) error {
+	// Check if admin exists
+	admins, err := _appdata.Users.GetByField("is_admin", true)
 	if err != nil {
-		fmt.Println("Error changing working directory:", err)
-		return
+		return err
 	}
 
+	// If no admin exists, create one
+	if len(admins) == 0 {
+		admin := models.User{
+			Username: "Cim",
+			Password: "$2a$10$UI5NYV/TPz0MwzKo6AJ2tugz77p3KwUjIP9FPVbmRM.AgeasHOAUO",
+			IsAdmin:  true,
+		}
+		_, err = _appdata.Users.Add(admin)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func generateEncryptionKey() (string, error) {
+	key := make([]byte, 32) // 256 bits
+	if _, err := rand.Read(key); err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(key), nil
+}
+
+func main() {
 	// Initialize the database
-	db, err := store.InitDB(store.DBFilename, store.LogsTable, store.ItemsTable, store.DataTable)
+	db, err := store.InitDB(store.DBFilename, store.LogsTable, store.ItemsTable, store.DataTable, store.UserTable)
 	if err != nil {
 		fmt.Println("Error initializing the database:", err)
 		return
@@ -36,6 +63,13 @@ func main() {
 	_appdata.Logs = store.NewSQLDB[models.Log](db, store.LogsTable)
 	_appdata.LogItems = store.NewSQLDB[models.LogItem](db, store.ItemsTable)
 	_appdata.LogDataCol = store.NewSQLDB[models.LogData](db, store.DataTable)
+	_appdata.Users = store.NewSQLDB[models.User](db, store.UserTable)
+
+	// Add admin user
+	if err := addAdmin(&_appdata); err != nil {
+		fmt.Println("Error adding admin user:", err)
+		return
+	}
 
 	// Wrapping the handler functions
 	handler_wrapper := func(handler HandlerFunc) fiber.Handler {
@@ -45,16 +79,34 @@ func main() {
 	}
 
 	// Create a new Fiber instance
-	// engine := html.New("./web/templates", ".html")
-	// app := fiber.New(fiber.Config{
-	// 	Views:       engine,
-	// 	ViewsLayout: "web/layouts",
-	// })
 	app := fiber.New()
 
 	// Middleware
 	app.Use(logger.New())
-	//app.Use(recover.New())
+	app.Use(recover.New())
+
+	// Session
+	encryptionKey, err := generateEncryptionKey()
+	if err != nil {
+		fmt.Println("Error generating encryption key:", err)
+		return
+	}
+	app.Use(encryptcookie.New(encryptcookie.Config{
+		Key: encryptionKey,
+	}))
+	store := session.New(session.Config{
+		CookieSecure:   true,
+		CookieHTTPOnly: true,
+		CookieSameSite: "Strict",
+	})
+	app.Use(func(c *fiber.Ctx) error {
+		sesh, err := store.Get(c)
+		if err != nil {
+			return err
+		}
+		c.Locals("session", sesh)
+		return c.Next()
+	})
 
 	// Define the routes
 	app.Static("/static", "./web/static")
@@ -62,6 +114,7 @@ func main() {
 	// Render web
 	app.Get("/", handlers.RenderIndex)
 	app.Get("/add", handlers.RenderAdd)
+	app.Get("/login", handlers.RenderLogin)
 
 	// Logs
 	app.Get("/api/logs/get/:id?", handler_wrapper(handlers.GetLog))
@@ -70,6 +123,10 @@ func main() {
 	// Data
 	app.Get("/api/data/get/:id", handler_wrapper(handlers.GetData))
 	app.Post("/api/data/add", handler_wrapper(handlers.SaveData))
+
+	// Users
+	app.Post("/api/users/register", handler_wrapper(handlers.RegisterUser))
+	app.Post("/api/users/login", handler_wrapper(handlers.LoginUser))
 
 	// Run the app
 	fmt.Println("Server is running at 8090 port.")

@@ -1,0 +1,61 @@
+{{define "style"}}
+<link rel="stylesheet" href="./static/css/login.css">
+{{end}}
+
+{{define "content"}}
+<div id="login-box">
+    <input type="text" name="username" placeholder="Username" required><br>
+    <input type="password" name="password" placeholder="Password" required><br>
+    <button id="login-btn">Log in</button>
+    <div style="display: flex; align-items: center; margin: 20px 0;">
+        <hr style="flex-grow: 1; border: none; border-top: 1px solid var(--text-color);">
+        <span style="margin: 0 10px;">or</span>
+        <hr style="flex-grow: 1; border: none; border-top: 1px solid var(--text-color);">
+    </div>
+    <button id="register-btn">Register</button>
+</div>
+{{end}}
+
+{{define "script"}}
+<script>
+    document.getElementById("login-btn").addEventListener("click", () => {
+        const username = document.querySelector("#login-box input[name='username']").value;
+        const password = document.querySelector("#login-box input[name='password']").value;
+        fetch("/api/users/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({username: username, password: password})
+        }).then(res => {
+            if (res.status === 200) {
+                window.location.href = "/";
+            } else {
+                res.text().then(message => alert(message));
+            }
+        }).catch(err => {
+            console.error(err);
+        });
+    });
+
+    document.getElementById("register-btn").addEventListener("click", () => {
+        const username = document.querySelector("#login-box input[name='username']").value;
+        const password = document.querySelector("#login-box input[name='password']").value;
+        fetch("/api/users/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({username: username, password: password})
+        }).then(res => {
+            if (res.status === 200) {
+                window.location.href = "/";
+            } else {
+                res.text().then(message => alert(message));
+            }
+        }).catch(err => {
+            console.error(err);
+        });
+    });
+</script>
+{{end}}

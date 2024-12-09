@@ -10,7 +10,7 @@ body {
     padding: 0;
     margin: 0;
     background-color: var(--background-color);
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Courier New', Courier, monospace !important;
     font-weight: 800;
     color: var(--text-color)
 }
@@ -20,6 +20,7 @@ header {
     background-color: var(--accent-color);
     width: 75px;
     left: 0;
+    top: 0;
     height: 100%;
     text-align: center;
 }

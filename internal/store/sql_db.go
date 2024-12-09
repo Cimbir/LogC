@@ -13,9 +13,10 @@ const (
 	LogsTable  = "logs"
 	ItemsTable = "log_items"
 	DataTable  = "log_data"
+	UserTable  = "users"
 )
 
-func InitDB(dbFilename string, logsTable string, itemsTable string, dataTable string) (*sql.DB, error) {
+func InitDB(dbFilename string, logsTable string, itemsTable string, dataTable string, userTable string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", dbFilename)
 	if err != nil {
 		return nil, err
@@ -24,21 +25,27 @@ func InitDB(dbFilename string, logsTable string, itemsTable string, dataTable st
 	createTableQuery := fmt.Sprintf(`
 	CREATE TABLE IF NOT EXISTS %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		title TEXT,
+		title STRING,
 		date DATETIME
 	);
 	CREATE TABLE IF NOT EXISTS %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		log_id INTEGER,
 		type INTEGER,
-		content STRING,
+		content TEXT,
 		"order" INTEGER,
 		FOREIGN KEY (log_id) REFERENCES logs(id)
 	);
 	CREATE TABLE IF NOT EXISTS %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		data BLOB
-	);`, logsTable, itemsTable, dataTable)
+	);
+	CREATE TABLE IF NOT EXISTS %s (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username STRING,
+		password STRING,
+		is_admin BOOLEAN
+	)`, logsTable, itemsTable, dataTable, userTable)
 	_, err = db.Exec(createTableQuery)
 	if err != nil {
 		return nil, err
@@ -75,6 +82,9 @@ func (s *SQLDB[T]) Add(item T) (int, error) {
 	case models.LogData:
 		insertQuery = fmt.Sprintf(`INSERT INTO %s (data) VALUES (?)`, s.tableName)
 		result, err = tx.Exec(insertQuery, v.Data)
+	case models.User:
+		insertQuery = fmt.Sprintf(`INSERT INTO %s (username, password, is_admin) VALUES (?, ?, ?)`, s.tableName)
+		result, err = tx.Exec(insertQuery, v.Username, v.Password, v.IsAdmin)
 	default:
 		tx.Rollback()
 		return -1, fmt.Errorf("unsupported item type: %T", item)
@@ -117,6 +127,10 @@ func (s *SQLDB[T]) GetAll() ([]T, error) {
 			if err := rows.Scan(&v.Id, &v.Data); err != nil {
 				return nil, err
 			}
+		case *models.User:
+			if err := rows.Scan(&v.Id, &v.Username, &v.Password, &v.IsAdmin); err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("unsupported item type: %T", item)
 		}
@@ -144,6 +158,10 @@ func (s *SQLDB[T]) GetByID(id int) (T, error) {
 		if err := row.Scan(&v.Id, &v.Data); err != nil {
 			return item, err
 		}
+	case *models.User:
+		if err := row.Scan(&v.Id, &v.Username, &v.Password, &v.IsAdmin); err != nil {
+			return item, err
+		}
 	default:
 		return item, fmt.Errorf("unsupported item type: %T", item)
 	}
@@ -168,6 +186,9 @@ func (s *SQLDB[T]) Change(id int, item T) error {
 	case models.LogData:
 		updateQuery := fmt.Sprintf(`UPDATE %s SET data = ? WHERE id = ?`, s.tableName)
 		_, err = s.db.Exec(updateQuery, v.Data, id)
+	case models.User:
+		updateQuery := fmt.Sprintf(`UPDATE %s SET username = ?, password = ?, is_admin = ? WHERE id = ?`, s.tableName)
+		_, err = s.db.Exec(updateQuery, v.Username, v.Password, v.IsAdmin, id)
 	default:
 		return fmt.Errorf("unsupported item type: %T", item)
 	}
@@ -196,6 +217,10 @@ func (s *SQLDB[T]) GetByField(field string, value any) ([]T, error) {
 			}
 		case *models.LogData:
 			if err := rows.Scan(&v.Id, &v.Data); err != nil {
+				return nil, err
+			}
+		case *models.User:
+			if err := rows.Scan(&v.Id, &v.Username, &v.Password, &v.IsAdmin); err != nil {
 				return nil, err
 			}
 		default:
