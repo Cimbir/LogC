@@ -8,9 +8,9 @@ import (
 )
 
 func SetupSQLTestAppData(t *testing.T) (utils.AppData, teardown) {
-	logs, logItems, logData, td := SetupSQLTestDB(t)
+	logs, logItems, logData, users, td := SetupSQLTestDB(t)
 
-	return utils.AppData{Logs: logs, LogItems: logItems, LogDataCol: logData}, td
+	return utils.AppData{Logs: logs, LogItems: logItems, LogDataCol: logData, Users: users}, td
 }
 
 func TestGetLog(t *testing.T) {

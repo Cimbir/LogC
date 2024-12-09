@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -101,7 +102,14 @@ func SaveDataTestHelper(t *testing.T, stp setuphandler) {
 	app := fiber.New()
 
 	// Define the route
+	store := session.New()
 	app.Post("/api/logs/save", func(c *fiber.Ctx) error {
+		sesh, err := store.Get(c)
+		if err != nil {
+			return err
+		}
+		sesh.Set("isAdmin", true)
+		c.Locals("session", sesh)
 		return handlers.SaveLog(c, &appData)
 	})
 

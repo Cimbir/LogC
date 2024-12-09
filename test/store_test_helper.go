@@ -10,10 +10,10 @@ import (
 )
 
 type teardown func()
-type setupdb func(*testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], teardown)
+type setupdb func(*testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], store.DB[models.User], teardown)
 
 func AddTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, td := stp(t)
+	logs, logItems, logData, users, td := stp(t)
 	defer td()
 
 	// log
@@ -36,10 +36,17 @@ func AddTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || id == -1 {
 		t.Fatalf("Failed to add log data: %v", err)
 	}
+
+	// user
+	user := models.User{Username: "Test User", Password: "Test Password", IsAdmin: false}
+	id, err = users.Add(user)
+	if err != nil || id == -1 {
+		t.Fatalf("Failed to add user: %v", err)
+	}
 }
 
 func GetAllTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, td := stp(t)
+	logs, logItems, logData, users, td := stp(t)
 	defer td()
 
 	// log
@@ -74,10 +81,21 @@ func GetAllTestHelper(t *testing.T, stp setupdb) {
 	if len(allData) != 1 {
 		t.Fatalf("Expected 1 log data, got %d", len(allData))
 	}
+
+	// user
+	user := models.User{Username: "Test User", Password: "Test Password", IsAdmin: false}
+	id, err = users.Add(user)
+	allUsers, err := users.GetAll()
+	if err != nil {
+		t.Fatalf("Failed to get all users: %v", err)
+	}
+	if len(allUsers) != 1 {
+		t.Fatalf("Expected 1 user, got %d", len(allUsers))
+	}
 }
 
 func GetByIDTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, td := stp(t)
+	logs, logItems, logData, users, td := stp(t)
 	defer td()
 
 	// log
@@ -103,10 +121,18 @@ func GetByIDTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || got_data.Id != id {
 		t.Fatalf("Expected log data with ID %d, got %v", id, got_data)
 	}
+
+	// user
+	user := models.User{Username: "Test User", Password: "Test Password", IsAdmin: false}
+	id, err = users.Add(user)
+	got_user, err := users.GetByID(id)
+	if err != nil || got_user.Id != id {
+		t.Fatalf("Expected user with ID %d, got %v", id, got_user)
+	}
 }
 
 func ChangeTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, td := stp(t)
+	logs, logItems, logData, users, td := stp(t)
 	defer td()
 
 	// log
@@ -144,10 +170,22 @@ func ChangeTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || string(changedData.Data) != "Changed Data" {
 		t.Fatalf("Expected log data 'Changed Data', got %v", changedData)
 	}
+
+	// user
+	user := models.User{Username: "Test User", Password: "Test Password", IsAdmin: false}
+	id, err = users.Add(user)
+	err = users.Change(id, models.User{Id: id, Username: "Changed User", Password: "Changed Password", IsAdmin: true})
+	if err != nil {
+		t.Fatalf("Failed to change user: %v", err)
+	}
+	changedUser, err := users.GetByID(id)
+	if err != nil || changedUser.Username != "Changed User" || changedUser.IsAdmin != true {
+		t.Fatalf("Expected user username 'Changed User' and isAdmin true, got %v", changedUser)
+	}
 }
 
 func GetByFieldTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, td := stp(t)
+	logs, logItems, logData, users, td := stp(t)
 	defer td()
 
 	// log
@@ -173,10 +211,18 @@ func GetByFieldTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || id == -1 || len(got_data) != 1 {
 		t.Fatalf("Expected 1 log data, got %d", len(got_data))
 	}
+
+	// user
+	user := models.User{Username: "Test User", Password: "Test Password", IsAdmin: false}
+	id, err = users.Add(user)
+	got_users, err := users.GetByField("username", "Test User")
+	if err != nil || id == -1 || len(got_users) != 1 {
+		t.Fatalf("Expected 1 user, got %d", len(got_users))
+	}
 }
 
 func RemoveTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, td := stp(t)
+	logs, logItems, logData, users, td := stp(t)
 	defer td()
 
 	// log
@@ -211,6 +257,18 @@ func RemoveTestHelper(t *testing.T, stp setupdb) {
 		t.Fatalf("Failed to remove log data: %v", err)
 	}
 	_, err = logData.GetByID(id)
+	if err == nil {
+		t.Fatalf("Expected error, got nil")
+	}
+
+	// user
+	user := models.User{Username: "Test User", Password: "Test Password", IsAdmin: false}
+	id, err = users.Add(user)
+	err = users.Remove(id)
+	if err != nil {
+		t.Fatalf("Failed to remove user: %v", err)
+	}
+	_, err = users.GetByID(id)
 	if err == nil {
 		t.Fatalf("Expected error, got nil")
 	}
