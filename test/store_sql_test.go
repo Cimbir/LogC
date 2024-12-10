@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func SetupSQLTestDB(t *testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], store.DB[models.User], teardown) {
+func SetupSQLTestDB(t *testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], store.DB[models.User], store.DB[models.Comment], teardown) {
 	db, err := sql.Open("sqlite3", "test_logs.db")
 	if err != nil {
 		t.Fatalf("Failed to open database: %v", err)
@@ -33,14 +33,20 @@ func SetupSQLTestDB(t *testing.T) (store.DB[models.Log], store.DB[models.LogItem
 		t.Fatalf("Failed to drop table test_users: %v", err)
 	}
 
-	store.InitDB("test_logs.db", "test_logs", "test_log_items", "test_log_data", "test_users")
+	_, err = db.Exec("DROP TABLE IF EXISTS test_comments")
+	if err != nil {
+		t.Fatalf("Failed to drop table test_comments: %v", err)
+	}
+
+	store.InitDB("test_logs.db", "test_logs", "test_log_items", "test_log_data", "test_users", "test_comments")
 
 	logs := store.NewSQLDB[models.Log](db, "test_logs")
 	logItems := store.NewSQLDB[models.LogItem](db, "test_log_items")
 	logData := store.NewSQLDB[models.LogData](db, "test_log_data")
 	users := store.NewSQLDB[models.User](db, "test_users")
+	comments := store.NewSQLDB[models.Comment](db, "test_comments")
 
-	return logs, logItems, logData, users, func() {
+	return logs, logItems, logData, users, comments, func() {
 		db.Close()
 	}
 }

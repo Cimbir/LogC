@@ -3,7 +3,6 @@ package test
 import (
 	"LogC/internal/handlers"
 	"LogC/internal/models"
-	"LogC/internal/utils"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -17,9 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type setuphandler func(*testing.T) (utils.AppData, teardown)
-
-func GetDataTestHelper(t *testing.T, stp setuphandler) {
+func GetLogTestHelper(t *testing.T, stp setuphandler) {
 	appData, td := stp(t)
 	defer td()
 
@@ -95,7 +92,7 @@ func GetDataTestHelper(t *testing.T, stp setuphandler) {
 	assert.Equal(t, len(returnedLogs), 2)
 }
 
-func SaveDataTestHelper(t *testing.T, stp setuphandler) {
+func SaveLogTestHelper(t *testing.T, stp setuphandler) {
 	appData, td := stp(t)
 	defer td()
 

@@ -3,6 +3,7 @@ package test
 import (
 	"LogC/internal/models"
 	"LogC/internal/store"
+	"context"
 	"testing"
 	"time"
 
@@ -10,10 +11,28 @@ import (
 )
 
 type teardown func()
-type setupdb func(*testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], store.DB[models.User], teardown)
+type setupdb func(*testing.T) (store.DB[models.Log], store.DB[models.LogItem], store.DB[models.LogData], store.DB[models.User], store.DB[models.Comment], teardown)
+type helper func(*testing.T, setupdb)
+
+func TestWithTimeout(t *testing.T, h helper, stp setupdb, timeout int) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
+
+	done := make(chan bool)
+	go func() {
+		h(t, stp)
+		done <- true
+	}()
+
+	select {
+	case <-ctx.Done():
+		t.Fatalf("Test took too long")
+	case <-done:
+	}
+}
 
 func AddTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, users, td := stp(t)
+	logs, logItems, logData, users, comments, td := stp(t)
 	defer td()
 
 	// log
@@ -43,10 +62,17 @@ func AddTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || id == -1 {
 		t.Fatalf("Failed to add user: %v", err)
 	}
+
+	// comment
+	comment := models.Comment{UserId: id, LogId: id, Content: "Test Comment", Date: time.Now()}
+	id, err = comments.Add(comment)
+	if err != nil || id == -1 {
+		t.Fatalf("Failed to add comment: %v", err)
+	}
 }
 
 func GetAllTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, users, td := stp(t)
+	logs, logItems, logData, users, comments, td := stp(t)
 	defer td()
 
 	// log
@@ -92,10 +118,21 @@ func GetAllTestHelper(t *testing.T, stp setupdb) {
 	if len(allUsers) != 1 {
 		t.Fatalf("Expected 1 user, got %d", len(allUsers))
 	}
+
+	// comment
+	comment := models.Comment{UserId: id, LogId: id, Content: "Test Comment", Date: time.Now()}
+	id, err = comments.Add(comment)
+	allComments, err := comments.GetAll()
+	if err != nil {
+		t.Fatalf("Failed to get all comments: %v", err)
+	}
+	if len(allComments) != 1 {
+		t.Fatalf("Expected 1 comment, got %d", len(allComments))
+	}
 }
 
 func GetByIDTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, users, td := stp(t)
+	logs, logItems, logData, users, comments, td := stp(t)
 	defer td()
 
 	// log
@@ -129,10 +166,18 @@ func GetByIDTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || got_user.Id != id {
 		t.Fatalf("Expected user with ID %d, got %v", id, got_user)
 	}
+
+	// comment
+	comment := models.Comment{UserId: id, LogId: id, Content: "Test Comment", Date: time.Now()}
+	id, err = comments.Add(comment)
+	got_comment, err := comments.GetByID(id)
+	if err != nil || got_comment.Id != id {
+		t.Fatalf("Expected comment with ID %d, got %v", id, got_comment)
+	}
 }
 
 func ChangeTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, users, td := stp(t)
+	logs, logItems, logData, users, comments, td := stp(t)
 	defer td()
 
 	// log
@@ -182,10 +227,22 @@ func ChangeTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || changedUser.Username != "Changed User" || changedUser.IsAdmin != true {
 		t.Fatalf("Expected user username 'Changed User' and isAdmin true, got %v", changedUser)
 	}
+
+	// comment
+	comment := models.Comment{UserId: id, LogId: id, Content: "Test Comment", Date: time.Now()}
+	id, err = comments.Add(comment)
+	err = comments.Change(id, models.Comment{Id: id, UserId: id, LogId: id, Content: "Changed Comment", Date: time.Now()})
+	if err != nil {
+		t.Fatalf("Failed to change comment: %v", err)
+	}
+	changedComment, err := comments.GetByID(id)
+	if err != nil || changedComment.Content != "Changed Comment" {
+		t.Fatalf("Expected comment content 'Changed Comment', got %v", changedComment)
+	}
 }
 
 func GetByFieldTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, users, td := stp(t)
+	logs, logItems, logData, users, comments, td := stp(t)
 	defer td()
 
 	// log
@@ -219,10 +276,18 @@ func GetByFieldTestHelper(t *testing.T, stp setupdb) {
 	if err != nil || id == -1 || len(got_users) != 1 {
 		t.Fatalf("Expected 1 user, got %d", len(got_users))
 	}
+
+	// comment
+	comment := models.Comment{UserId: id, LogId: id, Content: "Test Comment", Date: time.Now()}
+	id, err = comments.Add(comment)
+	got_comments, err := comments.GetByField("content", "Test Comment")
+	if err != nil || id == -1 || len(got_comments) != 1 {
+		t.Fatalf("Expected 1 comment, got %d", len(got_comments))
+	}
 }
 
 func RemoveTestHelper(t *testing.T, stp setupdb) {
-	logs, logItems, logData, users, td := stp(t)
+	logs, logItems, logData, users, comments, td := stp(t)
 	defer td()
 
 	// log
@@ -269,6 +334,18 @@ func RemoveTestHelper(t *testing.T, stp setupdb) {
 		t.Fatalf("Failed to remove user: %v", err)
 	}
 	_, err = users.GetByID(id)
+	if err == nil {
+		t.Fatalf("Expected error, got nil")
+	}
+
+	// comment
+	comment := models.Comment{UserId: id, LogId: id, Content: "Test Comment", Date: time.Now()}
+	id, err = comments.Add(comment)
+	err = comments.Remove(id)
+	if err != nil {
+		t.Fatalf("Failed to remove comment: %v", err)
+	}
+	_, err = comments.GetByID(id)
 	if err == nil {
 		t.Fatalf("Expected error, got nil")
 	}

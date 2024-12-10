@@ -51,7 +51,7 @@ func generateEncryptionKey() (string, error) {
 
 func main() {
 	// Initialize the database
-	db, err := store.InitDB(store.DBFilename, store.LogsTable, store.ItemsTable, store.DataTable, store.UserTable)
+	db, err := store.InitDB(store.DBFilename, store.LogsTable, store.ItemsTable, store.DataTable, store.UserTable, store.CommentTable)
 	if err != nil {
 		fmt.Println("Error initializing the database:", err)
 		return
@@ -115,18 +115,18 @@ func main() {
 	app.Get("/", handlers.RenderIndex)
 	app.Get("/add", handlers.RenderAdd)
 	app.Get("/login", handlers.RenderLogin)
-
 	// Logs
 	app.Get("/api/logs/get/:id?", handler_wrapper(handlers.GetLog))
 	app.Post("/api/logs/add", handler_wrapper(handlers.SaveLog))
-
 	// Data
 	app.Get("/api/data/get/:id", handler_wrapper(handlers.GetData))
 	app.Post("/api/data/add", handler_wrapper(handlers.SaveData))
-
 	// Users
 	app.Post("/api/users/register", handler_wrapper(handlers.RegisterUser))
 	app.Post("/api/users/login", handler_wrapper(handlers.LoginUser))
+	// Comments
+	app.Get("/api/comments/get/:id", handler_wrapper(handlers.GetComments))
+	app.Post("/api/comments/add", handler_wrapper(handlers.SaveComment))
 
 	// Run the app
 	fmt.Println("Server is running at 8090 port.")
