@@ -3,7 +3,6 @@ package handlers
 import (
 	"LogC/internal/models"
 	"LogC/internal/utils"
-	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,16 +16,19 @@ func GetComments(c *fiber.Ctx, _appdata *utils.AppData) error {
 		return c.Status(400).SendString("Must have id")
 	}
 
-	// Convert id to int
-	logId, err := strconv.Atoi(id)
-	if err != nil {
-		return c.Status(400).SendString("Invalid ID")
-	}
-
 	// Get comments from database
-	comments, err := _appdata.Comments.GetByField("log_id", logId)
+	comments, err := _appdata.Comments.GetByField("log_id", id)
 	if err != nil {
 		return c.Status(404).SendString("Data not found")
+	}
+
+	if comments == nil {
+		comments = []models.Comment{}
+	}
+
+	// Reverse comments
+	for i, j := 0, len(comments)-1; i < j; i, j = i+1, j-1 {
+		comments[i], comments[j] = comments[j], comments[i]
 	}
 
 	// Return comments

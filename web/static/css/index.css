@@ -40,6 +40,7 @@
 }
 
 /* --------------------------------- */
+/* Timeline */
 
 #log-timeline {
     z-index: 100;
@@ -91,4 +92,42 @@ ul.rb li .timestamp {
     font-style: italic;
     font-weight: bold;
     word-wrap: break-word;
+}
+
+/* --------------------------------- */
+/* Comments */
+#comment-section {
+    background-color: var(--accent-color);
+    padding: 10px;
+    width: 90%;
+    display: block;
+    margin: 10px auto;
+}
+
+#comment-section-form {
+
+}
+
+#comment-section-form textarea {
+    width: 97%;
+    height: 40px;
+    margin: 10px auto;
+    display: block;
+}
+
+#comment-section-form button {
+    margin: 10px auto;
+    display: block;
+    text-align: center;
+    border: none;
+    background-color: var(--primary-color);
+    width: 97%;
+}
+
+#comment-section-form button:hover {
+    filter: brightness(1.1);
+}
+
+#comment-section-list {
+
 }

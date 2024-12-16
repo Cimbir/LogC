@@ -96,6 +96,17 @@ func IsAdmin(c *fiber.Ctx, _appdata *utils.AppData) error {
 	return c.JSON(fiber.Map{"isAdmin": true})
 }
 
+func IsLoggedIn(c *fiber.Ctx, _appdata *utils.AppData) error {
+	// Check if user is logged in
+	sesh := c.Locals("session").(*session.Session)
+	userId := sesh.Get("userId")
+	if userId == nil {
+		return c.JSON(fiber.Map{"isLoggedIn": false})
+	}
+
+	return c.JSON(fiber.Map{"isLoggedIn": true})
+}
+
 func GetUsers(c *fiber.Ctx, _appdata *utils.AppData) error {
 	// Check if user is admin
 	sesh := c.Locals("session").(*session.Session)

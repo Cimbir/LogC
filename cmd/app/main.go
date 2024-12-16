@@ -64,6 +64,7 @@ func main() {
 	_appdata.LogItems = store.NewSQLDB[models.LogItem](db, store.ItemsTable)
 	_appdata.LogDataCol = store.NewSQLDB[models.LogData](db, store.DataTable)
 	_appdata.Users = store.NewSQLDB[models.User](db, store.UserTable)
+	_appdata.Comments = store.NewSQLDB[models.Comment](db, store.CommentTable)
 
 	// Add admin user
 	if err := addAdmin(&_appdata); err != nil {
@@ -127,6 +128,7 @@ func main() {
 	app.Post("/api/users/register", handler_wrapper(handlers.RegisterUser))
 	app.Post("/api/users/login", handler_wrapper(handlers.LoginUser))
 	app.Get("/api/users/isAdmin", handler_wrapper(handlers.IsAdmin))
+	app.Get("/api/users/isLoggedIn", handler_wrapper(handlers.IsLoggedIn))
 	app.Get("/api/users/getAll", handler_wrapper(handlers.GetUsers))
 	app.Delete("/api/users/delete/:id", handler_wrapper(handlers.DeleteUser))
 	// Comments
