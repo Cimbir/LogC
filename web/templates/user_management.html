@@ -1,0 +1,49 @@
+{{define "style"}}
+<link rel="stylesheet" href="./static/css/user_management.css">
+{{end}}
+
+{{define "content"}}
+<table>
+    <tr>
+        <th>Id</th>
+        <th>Username</th>
+        <th>Password</th>
+        <th>Delete</th>
+    </tr>
+</table>
+{{end}}
+
+{{define "script"}}
+<script>
+fetch('/api/users/getAll')
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(user => {
+            var table = document.querySelector('table');
+            var row = table.insertRow(-1);
+            var idCell = row.insertCell(0);
+            var usernameCell = row.insertCell(1);
+            var passwordCell = row.insertCell(2);
+            var deleteCell = row.insertCell(3);
+
+            idCell.textContent = user.id;
+            usernameCell.textContent = user.username;
+            passwordCell.textContent = user.password;
+
+            var deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', function() {
+                fetch('/api/users/delete/' + user.id, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.status == 200) {
+                        row.remove();
+                    }
+                });
+            });
+            deleteCell.appendChild(deleteBtn);
+        });
+    });
+</script>
+{{end}}

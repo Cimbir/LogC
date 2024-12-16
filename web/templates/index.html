@@ -17,50 +17,89 @@
 
 {{define "script"}}
 <script>
+    function getDeleteButton(logDetails) {
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'log-view-delete-button';
+        deleteButton.innerHTML = 'Delete';
+        deleteButton.addEventListener('click', function() {
+            fetch(`/api/logs/delete/${logDetails.id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Log deleted successfully');
+                    // Remove the log item from the timeline
+                    document.getElementById(logDetails.id).remove();
+                    // Clear the log view
+                    logView.innerHTML = '';
+                } else {
+                    alert('Failed to delete log');
+                }
+            })
+            .catch(error => console.error('Error deleting log:', error));
+        });
+        return deleteButton
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const timelineList = document.getElementById('timeline-list');
         const logView = document.getElementById('log-view');
 
         // Fetch logs from the API
         fetch('/api/logs/get')
-            .then(response => response.json())
-            .then(logs => {
-                logs.forEach(log => {
-                    const logItem = document.createElement('li');
-                    logItem.className = 'rb-item log-timeline-item';
-                    logItem.id = log.id;
-                    //logItem.ng-repeat = 'itembx';
-                    logItem.innerHTML = `
-                        <div class="timestamp">${log.date}</div>
-                        <div class="item-title">${log.title}</div>
-                    `;
-                    timelineList.appendChild(logItem);
-
-                    // Add click event listener to fetch and display log details
-                    logItem.addEventListener('click', function() {
-                        fetch(`/api/logs/get/${log.id}`)
-                            .then(response => response.json())
-                            .then(logDetails => {
-                                logView.innerHTML = `
-                                    <div class="log-view-item" id="v${logDetails.id}">
-                                        <h1 class="log-view-title log-view-main-title">${logDetails.title}</h1>
-                                        ${logDetails.items.map(item => {
-                                            if (item.type === 0) {
-                                                return `<p class="log-view-text">${item.content}</p>`;
-                                            } else if (item.type === 1) {
-                                                return `<img class="log-view-image" src="/api/data/get/${item.content}" alt="Image">`;
-                                            } else if (item.type === 2) {
-                                                return `<h3 class="log-view-title">${item.content}</h3>`;
-                                            }
-                                        }).join('')}
-                                    </div>
-                                `;
-                            })
-                            .catch(error => console.error('Error fetching log details:', error));
-                    });
+        .then(response => response.json())
+        .then(logs => {
+            logs.forEach(log => {
+                const logItem = document.createElement('li');
+                logItem.className = 'rb-item log-timeline-item';
+                logItem.id = log.id;
+                //logItem.ng-repeat = 'itembx';
+                logItem.innerHTML = `
+                    <div class="timestamp">${log.date}</div>
+                    <div class="item-title">${log.title}</div>
+                `;
+                timelineList.appendChild(logItem);
+                // Add click event listener to fetch and display log details
+                logItem.addEventListener('click', function() {
+                    fetch(`/api/logs/get/${log.id}`)
+                    .then(response => response.json())
+                    .then(logDetails => {
+                        viewItem = document.createElement('div');
+                        viewItem.className = 'log-view-item';
+                        viewItem.id = `${logDetails.id}`;
+                        fetch(`/api/users/isAdmin`)
+                        .then(response => response.json())
+                        .then(
+                            data => {
+                                if(data.isAdmin === true) {
+                                    const deleteButton = getDeleteButton(logDetails);
+                                    viewItem.appendChild(deleteButton);
+                                }
+                            }
+                        )
+                        .catch(error => console.error('Error fetching log items:', error));
+                        title = document.createElement('h1');
+                        title.className = 'log-view-title log-view-main-title';
+                        title.innerHTML = logDetails.title;
+                        items = logDetails.items.map(item => {
+                            if (item.type === 0) {
+                                return `<p class="log-view-text">${item.content}</p>`;
+                            } else if (item.type === 1) {
+                                return `<img class="log-view-image" src="/api/data/get/${item.content}" alt="Image">`;
+                            } else if (item.type === 2) {
+                                return `<h3 class="log-view-title">${item.content}</h3>`;
+                            }
+                        }).join('');
+                        viewItem.appendChild(title);
+                        viewItem.innerHTML += items;
+                        logView.innerHTML = '';
+                        logView.appendChild(viewItem);
+                    })
+                    .catch(error => console.error('Error fetching log details:', error));
                 });
-            })
-            .catch(error => console.error('Error fetching logs:', error));
+            });
+        })
+        .catch(error => console.error('Error fetching logs:', error));
     });
 </script>
 {{end}}

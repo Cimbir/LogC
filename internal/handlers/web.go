@@ -43,3 +43,20 @@ func RenderLogin(c *fiber.Ctx) error {
 	c.Response().Header.Set("Content-Type", "text/html")
 	return tpl.Execute(c.Response().BodyWriter(), nil)
 }
+
+func RenderUserManagement(c *fiber.Ctx) error {
+	// Check if user is admin
+	sesh := c.Locals("session").(*session.Session)
+	isAdmin := sesh.Get("isAdmin")
+	if isAdmin == nil || !isAdmin.(bool) {
+		return c.Status(403).SendString("Forbidden")
+	}
+
+	tpl := template.Must(template.ParseFiles(
+		"web/templates/base.html",
+		"web/templates/header.html",
+		"web/templates/user_management.html",
+	))
+	c.Response().Header.Set("Content-Type", "text/html")
+	return tpl.Execute(c.Response().BodyWriter(), nil)
+}

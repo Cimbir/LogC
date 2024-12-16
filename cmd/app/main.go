@@ -115,15 +115,20 @@ func main() {
 	app.Get("/", handlers.RenderIndex)
 	app.Get("/add", handlers.RenderAdd)
 	app.Get("/login", handlers.RenderLogin)
+	app.Get("/user-management", handlers.RenderUserManagement)
 	// Logs
 	app.Get("/api/logs/get/:id?", handler_wrapper(handlers.GetLog))
 	app.Post("/api/logs/add", handler_wrapper(handlers.SaveLog))
+	app.Delete("/api/logs/delete/:id", handler_wrapper(handlers.DeleteLog))
 	// Data
 	app.Get("/api/data/get/:id", handler_wrapper(handlers.GetData))
 	app.Post("/api/data/add", handler_wrapper(handlers.SaveData))
 	// Users
 	app.Post("/api/users/register", handler_wrapper(handlers.RegisterUser))
 	app.Post("/api/users/login", handler_wrapper(handlers.LoginUser))
+	app.Get("/api/users/isAdmin", handler_wrapper(handlers.IsAdmin))
+	app.Get("/api/users/getAll", handler_wrapper(handlers.GetUsers))
+	app.Delete("/api/users/delete/:id", handler_wrapper(handlers.DeleteUser))
 	// Comments
 	app.Get("/api/comments/get/:id", handler_wrapper(handlers.GetComments))
 	app.Post("/api/comments/add", handler_wrapper(handlers.SaveComment))

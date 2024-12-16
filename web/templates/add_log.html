@@ -90,25 +90,8 @@
             if (typeEl.value == 1) {
                 var file = itemEl.files[0];
                 if (!file) continue;
-                try {
-                    const base64String = await readFileAsDataURL(file);
-                    item.content = base64String;
-
-                    const response = await fetch('/api/data/add', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ data: base64String })
-                    });
-
-                    const data = await response.json();
-                    item.content = data.id.toString();
-                    console.log('Success uploading data:', data);
-                } catch (error) {
-                    console.error('Error uploading data:', error);
-                    continue;
-                }
+                const base64String = await readFileAsDataURL(file);
+                item.content = base64String;
             }
 
             log.items.push(item);
