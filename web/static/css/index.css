@@ -21,22 +21,33 @@
 }
 
 .log-view-main-title {
-    font-size: 40px;
+    text-align: center;
+    font-size: 42px;
+    margin: 50px;
 }
 
 .log-view-title {
     text-align: center;
+    margin-bottom: 20px;
+    margin-top: 40px;
+    font-size: 30px;
 }
 
 .log-view-text {
     background-color: white;
-    padding: 5px;
+    padding: 10px;
+    margin: 20px;
+    line-height: 1.6;
+    text-indent: 2em;
 }
 
 .log-view-image {
     height: 600px;
     display: block;
-    margin: 0 auto;
+    margin: 20px auto;
+    border: 5px solid var(--text-color);
+    border-top: none;
+    border-bottom: none;
 }
 
 /* --------------------------------- */
@@ -55,6 +66,7 @@
 #log-timeline ul.rb {
     padding: 10px;
     padding-top: 20px;
+    margin-top: 20px;
 }
   
 #log-timeline ul.rb li {
@@ -110,18 +122,23 @@ ul.rb li .timestamp {
 
 #comment-section-form textarea {
     width: 97%;
-    height: 40px;
+    height: 60px;
     margin: 10px auto;
     display: block;
+    padding: 10px;
+    font-size: 16px;
 }
 
 #comment-section-form button {
     margin: 10px auto;
+    padding: 10px;
     display: block;
     text-align: center;
     border: none;
     background-color: var(--primary-color);
-    width: 97%;
+    width: 50%;
+    font-size: 20px;
+    font-weight: bold;
 }
 
 #comment-section-form button:hover {
@@ -130,4 +147,32 @@ ul.rb li .timestamp {
 
 #comment-section-list {
 
+}
+
+.comment-item {
+    background-color: var(--primary-color);
+    padding: 10px;
+    margin: 10px;
+    border-radius: 10px;
+    display: flex;
+    align-items: left;
+}
+
+.comment-user {
+    width: 10%;
+}
+
+.comment-text {
+    width: 80%;
+}
+
+.comment-timestamp {
+    font-size: 12px;
+}
+
+.log-view-delete-button {
+    text-align: center;
+    width: 20%;
+    margin: auto;
+    display: block;
 }

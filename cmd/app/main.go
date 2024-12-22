@@ -2,7 +2,7 @@ package main
 
 import (
 	"LogC/internal/handlers"
-	"LogC/internal/models"
+	models "LogC/internal/models/store"
 	"LogC/internal/store"
 	"LogC/internal/utils"
 	"crypto/rand"
@@ -129,7 +129,7 @@ func main() {
 	app.Post("/api/users/login", handler_wrapper(handlers.LoginUser))
 	app.Get("/api/users/isAdmin", handler_wrapper(handlers.IsAdmin))
 	app.Get("/api/users/isLoggedIn", handler_wrapper(handlers.IsLoggedIn))
-	app.Get("/api/users/getAll", handler_wrapper(handlers.GetUsers))
+	app.Get("/api/users/get/:id?", handler_wrapper(handlers.GetUser))
 	app.Delete("/api/users/delete/:id", handler_wrapper(handlers.DeleteUser))
 	// Comments
 	app.Get("/api/comments/get/:id", handler_wrapper(handlers.GetComments))

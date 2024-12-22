@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"LogC/internal/models"
+	models "LogC/internal/models/store"
 	"LogC/internal/utils"
 	"encoding/base64"
 	"strconv"

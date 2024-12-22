@@ -17,6 +17,8 @@
 
 {{define "script"}}
 <script>
+    const userMap = new Map();
+
     function getDeleteButton(logDetails) {
         const deleteButton = document.createElement('button');
         deleteButton.className = 'log-view-delete-button';
@@ -44,9 +46,16 @@
     function makeComment(comment) {
         commentItem = document.createElement('div');
         commentItem.className = 'comment-item';
+        commentItem.id = "c"+comment.id;
         commentItem.innerHTML = `
             <p class="comment-text">${comment.content}</p>
+            <p class="comment-timestamp">${new Date(comment.date).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</p>
         `;
+        fetch(`/api/users/get/${comment.user_id}`)
+        .then(response => response.json())
+        .then(user => {
+            document.getElementById("c"+comment.id).innerHTML = `<p class="comment-user">${user.username}</p>` + commentItem.innerHTML;
+        })
         return commentItem;
     }
 
@@ -64,7 +73,7 @@
                     data => {
                         if(data.isAdmin === true) {
                             const deleteButton = getDeleteButton(logDetails);
-                            viewItem.appendChild(deleteButton);
+                            logView.appendChild(deleteButton);
                         }
                     }
                 )
@@ -72,7 +81,7 @@
 
                 // title
                 title = document.createElement('h1');
-                title.className = 'log-view-title log-view-main-title';
+                title.className = 'log-view-main-title';
                 title.innerHTML = logDetails.title;
 
                 // items
@@ -137,6 +146,7 @@
                 fetch(`/api/comments/get/${logDetails.id}`)
                 .then(response => response.json())
                 .then(comments => {
+                    console.log(comments);
                     comments.forEach(comment => {
                         commentItem = makeComment(comment);
                         commentSectionList.appendChild(commentItem);
@@ -148,6 +158,7 @@
                 commentSection.appendChild(commentSectionList);
 
                 viewItem.appendChild(title);
+                viewItem.appendChild(document.createElement('hr'));
                 viewItem.innerHTML += items;
                 logView.innerHTML = '';
                 logView.appendChild(viewItem);
@@ -171,7 +182,7 @@
                 logItem.id = log.id;
                 //logItem.ng-repeat = 'itembx';
                 logItem.innerHTML = `
-                    <div class="timestamp">${log.date}</div>
+                    <div class="timestamp">${new Date(log.date).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</div>
                     <div class="item-title">${log.title}</div>
                 `;
                 timelineList.appendChild(logItem);

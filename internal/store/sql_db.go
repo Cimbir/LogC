@@ -1,7 +1,7 @@
 package store
 
 import (
-	"LogC/internal/models"
+	models "LogC/internal/models/store"
 	"database/sql"
 	"fmt"
 
@@ -27,7 +27,10 @@ func InitDB(dbFilename, logsTable, itemsTable, dataTable, userTable, commentTabl
 	CREATE TABLE IF NOT EXISTS %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title STRING,
-		date DATETIME
+		date DATETIME,
+		thumbnail_id INTEGER,
+		category INTEGER,
+		short_desc STRING
 	);
 	CREATE TABLE IF NOT EXISTS %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +42,8 @@ func InitDB(dbFilename, logsTable, itemsTable, dataTable, userTable, commentTabl
 	);
 	CREATE TABLE IF NOT EXISTS %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		data BLOB
+		data BLOB,
+		desc STRING
 	);
 	CREATE TABLE IF NOT EXISTS %s (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,14 +88,14 @@ func (s *SQLDB[T]) Add(item T) (int, error) {
 	var result sql.Result
 	switch v := any(item).(type) {
 	case models.Log:
-		insertQuery = fmt.Sprintf(`INSERT INTO %s (title, date) VALUES (?, ?)`, s.tableName)
-		result, err = tx.Exec(insertQuery, v.Title, v.Date)
+		insertQuery = fmt.Sprintf(`INSERT INTO %s (title, date, thumbnail_id, category, short_desc) VALUES (?, ?, ?, ?, ?)`, s.tableName)
+		result, err = tx.Exec(insertQuery, v.Title, v.Date, v.ThumbnailId, v.Category, v.ShortDesc)
 	case models.LogItem:
 		insertQuery = fmt.Sprintf(`INSERT INTO %s (log_id, type, content, "order") VALUES (?, ?, ?, ?)`, s.tableName)
 		result, err = tx.Exec(insertQuery, v.LogId, v.Type, v.Content, v.Order)
 	case models.LogData:
-		insertQuery = fmt.Sprintf(`INSERT INTO %s (data) VALUES (?)`, s.tableName)
-		result, err = tx.Exec(insertQuery, v.Data)
+		insertQuery = fmt.Sprintf(`INSERT INTO %s (data, desc) VALUES (?, ?)`, s.tableName)
+		result, err = tx.Exec(insertQuery, v.Data, v.Desc)
 	case models.User:
 		insertQuery = fmt.Sprintf(`INSERT INTO %s (username, password, is_admin) VALUES (?, ?, ?)`, s.tableName)
 		result, err = tx.Exec(insertQuery, v.Username, v.Password, v.IsAdmin)
@@ -129,7 +133,7 @@ func (s *SQLDB[T]) GetAll() ([]T, error) {
 		var item T
 		switch v := any(&item).(type) {
 		case *models.Log:
-			if err := rows.Scan(&v.Id, &v.Title, &v.Date); err != nil {
+			if err := rows.Scan(&v.Id, &v.Title, &v.Date, &v.ThumbnailId, &v.Category, &v.ShortDesc); err != nil {
 				return nil, err
 			}
 		case *models.LogItem:
@@ -137,7 +141,7 @@ func (s *SQLDB[T]) GetAll() ([]T, error) {
 				return nil, err
 			}
 		case *models.LogData:
-			if err := rows.Scan(&v.Id, &v.Data); err != nil {
+			if err := rows.Scan(&v.Id, &v.Data, &v.Desc); err != nil {
 				return nil, err
 			}
 		case *models.User:
@@ -164,7 +168,7 @@ func (s *SQLDB[T]) GetByID(id int) (T, error) {
 	var item T
 	switch v := any(&item).(type) {
 	case *models.Log:
-		if err = row.Scan(&v.Id, &v.Title, &v.Date); err != nil {
+		if err = row.Scan(&v.Id, &v.Title, &v.Date, &v.ThumbnailId, &v.Category, &v.ShortDesc); err != nil {
 			return item, err
 		}
 	case *models.LogItem:
@@ -172,7 +176,7 @@ func (s *SQLDB[T]) GetByID(id int) (T, error) {
 			return item, err
 		}
 	case *models.LogData:
-		if err := row.Scan(&v.Id, &v.Data); err != nil {
+		if err := row.Scan(&v.Id, &v.Data, &v.Desc); err != nil {
 			return item, err
 		}
 	case *models.User:
@@ -199,14 +203,14 @@ func (s *SQLDB[T]) Change(id int, item T) error {
 	var err error
 	switch v := any(item).(type) {
 	case models.Log:
-		updateQuery := fmt.Sprintf(`UPDATE %s SET title = ?, date = ? WHERE id = ?`, s.tableName)
-		_, err = s.db.Exec(updateQuery, v.Title, v.Date, id)
+		updateQuery := fmt.Sprintf(`UPDATE %s SET title = ?, date = ?, thumbnail_id = ?, category = ?, short_desc = ? WHERE id = ?`, s.tableName)
+		_, err = s.db.Exec(updateQuery, v.Title, v.Date, v.ThumbnailId, v.Category, v.ShortDesc, id)
 	case models.LogItem:
 		updateQuery := fmt.Sprintf(`UPDATE %s SET log_id = ?, type = ?, content = ?, "order" = ? WHERE id = ?`, s.tableName)
 		_, err = s.db.Exec(updateQuery, v.LogId, v.Type, v.Content, v.Order, id)
 	case models.LogData:
-		updateQuery := fmt.Sprintf(`UPDATE %s SET data = ? WHERE id = ?`, s.tableName)
-		_, err = s.db.Exec(updateQuery, v.Data, id)
+		updateQuery := fmt.Sprintf(`UPDATE %s SET data = ?, desc = ? WHERE id = ?`, s.tableName)
+		_, err = s.db.Exec(updateQuery, v.Data, v.Desc, id)
 	case models.User:
 		updateQuery := fmt.Sprintf(`UPDATE %s SET username = ?, password = ?, is_admin = ? WHERE id = ?`, s.tableName)
 		_, err = s.db.Exec(updateQuery, v.Username, v.Password, v.IsAdmin, id)
@@ -232,7 +236,7 @@ func (s *SQLDB[T]) GetByField(field string, value any) ([]T, error) {
 		var item T
 		switch v := any(&item).(type) {
 		case *models.Log:
-			if err = rows.Scan(&v.Id, &v.Title, &v.Date); err != nil {
+			if err = rows.Scan(&v.Id, &v.Title, &v.Date, &v.ThumbnailId, &v.Category, &v.ShortDesc); err != nil {
 				return nil, err
 			}
 		case *models.LogItem:
@@ -240,7 +244,7 @@ func (s *SQLDB[T]) GetByField(field string, value any) ([]T, error) {
 				return nil, err
 			}
 		case *models.LogData:
-			if err := rows.Scan(&v.Id, &v.Data); err != nil {
+			if err := rows.Scan(&v.Id, &v.Data, &v.Desc); err != nil {
 				return nil, err
 			}
 		case *models.User:

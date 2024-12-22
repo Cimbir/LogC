@@ -6,13 +6,23 @@
     --text-color: #7982ff;    
 }
 
-body {
-    padding: 0;
-    margin: 0;
-    background-color: var(--background-color);
-    font-family: 'Courier New', Courier, monospace !important;
+* {
+    font-family: 'Courier New', Courier, monospace;
     font-weight: 800;
-    color: var(--text-color)
+    color: var(--text-color);
+    border: none;
+    margin: 0;
+    margin: 0;
+    text-decoration: none;
+}
+
+hr {
+    border: 1px solid var(--text-color);
+    margin: 5px;
+}
+
+body {
+    background-color: var(--background-color);
 }
 
 header {

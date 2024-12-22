@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"LogC/internal/models"
+	models "LogC/internal/models/store"
 	"LogC/internal/services"
 	"LogC/internal/utils"
 	"strconv"
@@ -107,20 +107,38 @@ func IsLoggedIn(c *fiber.Ctx, _appdata *utils.AppData) error {
 	return c.JSON(fiber.Map{"isLoggedIn": true})
 }
 
-func GetUsers(c *fiber.Ctx, _appdata *utils.AppData) error {
-	// Check if user is admin
-	sesh := c.Locals("session").(*session.Session)
-	isAdmin := sesh.Get("isAdmin")
-	if isAdmin == nil || !isAdmin.(bool) {
-		return c.Status(403).SendString("Forbidden")
-	}
+func GetUser(c *fiber.Ctx, _appdata *utils.AppData) error {
+	// Get the ID from parameters
+	id := c.Params("id")
+	if id == "" {
+		// Check if user is admin
+		sesh := c.Locals("session").(*session.Session)
+		isAdmin := sesh.Get("isAdmin")
+		if isAdmin == nil || !isAdmin.(bool) {
+			return c.Status(403).SendString("Forbidden")
+		}
 
-	users, err := _appdata.Users.GetAll()
-	if err != nil {
-		return c.Status(500).SendString("Error getting users")
-	}
+		users, err := _appdata.Users.GetAll()
+		if err != nil {
+			return c.Status(500).SendString("Error getting users")
+		}
 
-	return c.JSON(users)
+		return c.JSON(users)
+	} else {
+		// Convert the ID to an integer
+		dataId, err := strconv.Atoi(id)
+		if err != nil {
+			return c.Status(400).SendString("Invalid ID")
+		}
+
+		// Get the user from the database
+		user, err := _appdata.Users.GetByID(dataId)
+		if err != nil {
+			return c.Status(404).SendString("User not found")
+		}
+
+		return c.JSON(user)
+	}
 }
 
 func DeleteUser(c *fiber.Ctx, _appdata *utils.AppData) error {

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"LogC/internal/models"
+	models "LogC/internal/models/store"
 	"LogC/internal/store"
 )
 

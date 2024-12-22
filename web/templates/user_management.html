@@ -15,7 +15,7 @@
 
 {{define "script"}}
 <script>
-fetch('/api/users/getAll')
+fetch('/api/users/get')
     .then(response => response.json())
     .then(data => {
         data.forEach(user => {

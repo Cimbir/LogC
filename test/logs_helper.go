@@ -56,7 +56,7 @@ func GetLogTestHelper(t *testing.T, stp setuphandler) {
 	// Check the response
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var returnedLog models.Log
+	var returnedLog handlers.LogResponse
 	if err := json.NewDecoder(resp.Body).Decode(&returnedLog); err != nil {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
@@ -84,7 +84,7 @@ func GetLogTestHelper(t *testing.T, stp setuphandler) {
 	// Check the response
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var returnedLogs []models.Log
+	var returnedLogs []handlers.LogResponse
 	if err := json.NewDecoder(resp.Body).Decode(&returnedLogs); err != nil {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
@@ -111,9 +111,9 @@ func SaveLogTestHelper(t *testing.T, stp setuphandler) {
 	})
 
 	// Create a log to save
-	log := models.Log{Title: "New Log", Date: time.Now(), Items: []models.LogItem{
-		{Type: models.Title, Content: "Title"},
-		{Type: models.Text, Content: "Description"},
+	log := handlers.LogRequest{Title: "New Log", Items: []handlers.LogItemRequest{
+		{Type: "Title", Content: "Title"},
+		{Type: "Text", Content: "Description"},
 	}}
 	logJSON, err := json.Marshal(log)
 	if err != nil {
@@ -153,6 +153,5 @@ func SaveLogTestHelper(t *testing.T, stp setuphandler) {
 	}
 
 	assert.Equal(t, log.Title, savedLog.Title)
-	assert.Equal(t, log.Date.Format("2006-01-01"), savedLog.Date.Format("2006-01-01"))
 	assert.Equal(t, len(log.Items), len(savedItems))
 }

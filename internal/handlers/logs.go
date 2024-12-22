@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"LogC/internal/models"
+	apiM "LogC/internal/models/api"
+	storeM "LogC/internal/models/store"
 	"LogC/internal/utils"
 	"encoding/base64"
 	"strconv"
@@ -9,6 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
+
+// Handlers
 
 func GetLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 	// Get the ID from parameters
@@ -25,8 +28,14 @@ func GetLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 			return c.Status(500).SendString("Error getting logs")
 		}
 
+		// Convert to response
+		var response []apiM.LogResponse
+		for _, log := range logs {
+			response = append(response, apiM.ToLogResponse(log, []storeM.LogItem{}))
+		}
+
 		// Return the logs
-		return c.JSON(logs)
+		return c.JSON(response)
 	} else {
 		// Convert the ID to an integer
 		logId, err := strconv.Atoi(id)
@@ -45,10 +54,12 @@ func GetLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 		if err != nil {
 			return c.Status(500).SendString("Error getting log items")
 		}
-		log.Items = log_items
+
+		// Create a new response
+		response := apiM.ToLogResponse(log, log_items)
 
 		// Return the log
-		return c.JSON(log)
+		return c.JSON(response)
 	}
 }
 
@@ -61,30 +72,32 @@ func SaveLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 	}
 
 	// Parse JSON
-	var log models.Log
+	var log apiM.LogRequest
 	if err := c.BodyParser(&log); err != nil {
 		return c.Status(400).SendString("Cannot parse JSON")
 	}
 
+	// Convert to models
+	logModel := apiM.FromLogRequest(log)
+
 	// Save log
-	id, err := _appdata.Logs.Add(log)
+	id, err := _appdata.Logs.Add(logModel)
 	if err != nil {
 		return c.Status(500).SendString("Failed to save log")
 	}
 
 	// Save log items
 	for i, item := range log.Items {
-		item.LogId = id
-		item.Order = i
+		itemModel := apiM.FromLogItemRequest(item, i, id)
 
 		// Save Image data
-		if item.Type == models.Image {
+		if itemModel.Type == storeM.Image {
 			// Decode base64 data
 			decodedData, err := base64.StdEncoding.DecodeString(item.Content)
 			if err != nil {
 				return c.Status(400).SendString("Invalid base64 data")
 			}
-			data := models.LogData{Data: decodedData}
+			data := storeM.LogData{Data: decodedData}
 
 			// Save data
 			id, err := _appdata.LogDataCol.Add(data)
@@ -92,10 +105,10 @@ func SaveLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 				return c.Status(500).SendString("Failed to save data")
 			}
 
-			item.Content = strconv.Itoa(id)
+			itemModel.Content = strconv.Itoa(id)
 		}
 
-		_, err := _appdata.LogItems.Add(item)
+		_, err := _appdata.LogItems.Add(itemModel)
 		if err != nil {
 			return c.Status(500).SendString("Failed to save log items")
 		}
@@ -131,7 +144,7 @@ func DeleteLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 	// Delete items
 	for _, item := range items {
 		// Delete Image data
-		if item.Type == models.Image {
+		if item.Type == storeM.Image {
 			// Convert the ID to an integer
 			dataId, err := strconv.Atoi(item.Content)
 			if err != nil {
