@@ -105,8 +105,21 @@ func SaveLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 		return c.Status(400).SendString("Cannot parse JSON")
 	}
 
+	// Decode thumbnail data
+	decodedData, err := base64.StdEncoding.DecodeString(log.Thumbnail)
+	if err != nil {
+		return c.Status(400).SendString("Invalid base64 data")
+	}
+	data := storeM.LogData{Data: decodedData}
+
+	// Save thumbnail data
+	thumbnailId, err := _appdata.LogDataCol.Add(data)
+	if err != nil {
+		return c.Status(500).SendString("Failed to save data")
+	}
+
 	// Convert to models
-	logModel := apiM.FromLogRequest(log)
+	logModel := apiM.FromLogRequest(log, thumbnailId)
 
 	// Save log
 	id, err := _appdata.Logs.Add(logModel)

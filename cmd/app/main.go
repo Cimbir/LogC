@@ -117,6 +117,8 @@ func main() {
 	app.Get("/add", handlers.RenderAdd)
 	app.Get("/login", handlers.RenderLogin)
 	app.Get("/user-management", handlers.RenderUserManagement)
+	app.Get("/timeline", handlers.RenderTimeline)
+	app.Get("/view/:id", handlers.RenderLogView)
 	// Logs
 	app.Get("/api/logs/get/:id?", handler_wrapper(handlers.GetLog))
 	app.Post("/api/logs/add", handler_wrapper(handlers.SaveLog))

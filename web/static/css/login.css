@@ -2,32 +2,38 @@
     width: 80%;
     margin: auto;
     margin-top: 30px;
-    background-color: var(--secondary-color);
+    background-color: var(--surface);
     padding: 20px;
 }
 
 input {
     border: none;
-    border-bottom: 1px solid var(--text-color);
+    border-bottom: 1px solid var(--secondary);
     padding: 5px;
     width: 90%;
     display: block;
     margin: 0 auto;
     font-size: 20px;
-    color: var(--text-color);
-    font-family: 'Courier New', Courier, monospace !important;
+    background-color: var(--on-surface);
+    color: var(--surface);
+    font-family: var(--font);
     font-weight: bold;
     text-align: center;
 }
 
 button {
     border: none;
-    background-color: var(--accent-color);
-    padding: 5px;
+    background-color: var(--secondary);
+    padding: 5px 10px;
+    border-radius: 2px;
     display: block;
     margin: 0 auto;
     font-size: 20px;
-    color: var(--text-color);
-    font-family: 'Courier New', Courier, monospace !important;
-    font-weight: bold;
+    color: var(--on-secondary);
+    font-family: var(--font);
+    font-weight: 1000;
+}
+
+button:hover {
+    filter: brightness(1.2);
 }

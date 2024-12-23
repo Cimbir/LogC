@@ -60,3 +60,27 @@ func RenderUserManagement(c *fiber.Ctx) error {
 	c.Response().Header.Set("Content-Type", "text/html")
 	return tpl.Execute(c.Response().BodyWriter(), nil)
 }
+
+func RenderTimeline(c *fiber.Ctx) error {
+	tpl := template.Must(template.ParseFiles(
+		"web/templates/base.html",
+		"web/templates/header.html",
+		"web/templates/timeline.html",
+	))
+	c.Response().Header.Set("Content-Type", "text/html")
+	return tpl.Execute(c.Response().BodyWriter(), nil)
+}
+
+func RenderLogView(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	tpl := template.Must(template.ParseFiles(
+		"web/templates/base.html",
+		"web/templates/header.html",
+		"web/templates/view.html",
+	))
+	c.Response().Header.Set("Content-Type", "text/html")
+	return tpl.Execute(c.Response().BodyWriter(), fiber.Map{
+		"ID": id,
+	})
+}

@@ -1,0 +1,51 @@
+{{define "style"}}
+<link rel="stylesheet" href="/static/css/timeline.css">
+{{end}}
+
+{{define "content"}}
+<div class="timeline">
+    <div class="outer">
+        <!-- Timeline items will be added here -->
+    </div>
+  </div>
+{{end}}
+
+{{define "script"}}
+<script>
+// Run when page is loaded
+$(document).ready(function() {
+  const outer = $('.outer');
+
+  // Fetch logs from the API
+  $.ajax({
+    url: '/api/logs/get',
+    method: 'GET',
+    dataType: 'json',
+    success: function(logs) {
+      logs.forEach(function(log) {
+        // Add element to timeline
+        const logItem = $('<div>', {
+          class: 'card',
+          id: log.id,
+          html: `
+            <div class="info">
+              <a href="/view/${log.id}"><img class="thumbnail" src="/api/data/get/${log.thumbnail_id}"></a>
+              <div class="info-text">
+                <h2 class="title">${log.title}</h2>
+                <h4 class="date">${new Date(log.date).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</h4>
+                <hr>
+                <p>${log.short_desc}</p>
+              </div>
+            </div>
+          `
+        });
+        outer.append(logItem);
+      });
+      },
+    error: function() {
+        console.error('Error fetching logs');
+    }
+  });
+});
+</script>
+{{end}}

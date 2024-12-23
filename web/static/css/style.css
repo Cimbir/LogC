@@ -1,15 +1,20 @@
 :root {
-    --primary-color: #ffd6ff;
-    --secondary-color: #e7c6ff;
-    --accent-color: #c8b6ff;
-    --background-color: #b8c0ff;
-    --text-color: #7982ff;    
+    --background: #121212;
+    --surface: #353535;
+    --primary: #bb86fc;
+    --primary-var: #3700b3;
+    --secondary: #03dac6;
+    --error: #cf6679;
+    --on-background: #fff;
+    --on-surface: #fff;
+    --on-primary: #000;
+    --on-secondary: #000;
+    --on-error: #000;
+    --font: 'Courier New', Courier, monospace; 
 }
 
 * {
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: 800;
-    color: var(--text-color);
+    font-family: var(--font);
     border: none;
     margin: 0;
     margin: 0;
@@ -17,18 +22,18 @@
 }
 
 hr {
-    border: 1px solid var(--text-color);
+    border: 1px solid var(--surface);
     margin: 5px;
 }
 
 body {
-    background-color: var(--background-color);
+    background-color: var(--background);
 }
 
 header {
     position: fixed;
-    background-color: var(--accent-color);
-    width: 75px;
+    background-color: var(--surface);
+    width: 100px;
     left: 0;
     top: 0;
     height: 100%;
@@ -38,8 +43,14 @@ header {
 header nav a {
     display: block;
     padding: 1em;
-    color: var(--text-color);
+    color: var(--on-surface);
     text-decoration: none;
+    border-bottom: 1px solid var(--secondary);
+}
+
+header nav a:hover {
+    background-color: var(--secondary);
+    color: var(--on-secondary);
 }
 
 main {

@@ -1,16 +1,27 @@
 {{define "style"}}
-<link rel="stylesheet" href="./static/css/add_log.css">
+<link rel="stylesheet" href="/static/css/add_log.css">
 {{end}}
 
 {{define "content"}}
 <div id="log-inputs">
     <input id="title" type="text" name="title" placeholder="Title" required><br>
+    <input type="file" name="thumbnail" id="thumbnail" required><br>
+    <select id="category" name="category">
+        <option value="Other">Other</option>
+        <option value="Tech">Tech</option>
+        <option value="Art">Art</option>
+        <option value="Review">Review</option>
+    </select><br>
+    <textarea id="short_desc" name="short_desc" placeholder="Short Description" required></textarea><br>
+
     <div id="textareaContainer"></div>
-    <button type="button" id="addTextareaBtn">Add Description</button>
+    
+    <button type="button" id="addTextareaBtn">Add Item</button>
     <select id="inputType" name="inputType">
         <option value="text">Text</option>
         <option value="image">Image</option>
         <option value="title">Title</option>
+        <option value="quote">Quote</option>
     </select>
     <input type="number" name="item-amount" value="0" id="amount" hidden required><br>
     <button id="add-log">Log</button>
@@ -38,6 +49,10 @@
             contentInp.placeholder = 'title';
             typeInp = document.createElement('input');
             typeInp.value = 'Title';
+        } else if(document.getElementById('inputType').value == 'quote') {
+            contentInp = document.createElement('textarea');
+            typeInp = document.createElement('input');
+            typeInp.value = 'Quote';
         }
         contentInp.name = 'item' + id;
         typeInp.name = 'type' + id;
@@ -72,11 +87,20 @@
 
         var log = {
             title: $('#title').val(),
-            thumbnail_id: 1,
-            category: "Tech",
-            short_desc: "Short description",
+            thumbnail: "",
+            category: $('#category').val(),
+            short_desc: $('#short_desc').val(),
             items: []
         };
+
+        var thumbnail = $('#thumbnail').first()[0].files[0];
+        thumbnail.name = encodeURIComponent(thumbnail.name);
+        if (!thumbnail) {
+            alert('Please select a thumbnail');
+            return;
+        }
+        const thumbnailBase64String = await readFileAsDataURL(thumbnail);
+        log.thumbnail = thumbnailBase64String;
 
         for (var i = 0; i < id; i++) {
             var typeEl = $('input[name="type' + i + '"]').first();
@@ -99,6 +123,7 @@
             log.items.push(item);
         }
 
+        console.log(JSON.stringify(log));
         $.ajax({
             url: '/api/logs/add',
             method: 'POST',
