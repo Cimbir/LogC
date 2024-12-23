@@ -58,16 +58,15 @@ func ToLogItemResponse(item storeM.LogItem) LogItemResponse {
 }
 
 type LogResponse struct {
-	Id          int               `json:"id"`
-	Title       string            `json:"title"`
-	Date        time.Time         `json:"date"`
-	ThumbnailId int               `json:"thumbnail_id"`
-	Category    string            `json:"category"`
-	ShortDesc   string            `json:"short_desc"`
-	Items       []LogItemResponse `json:"items"`
+	Id          int       `json:"id"`
+	Title       string    `json:"title"`
+	Date        time.Time `json:"date"`
+	ThumbnailId int       `json:"thumbnail_id"`
+	Category    string    `json:"category"`
+	ShortDesc   string    `json:"short_desc"`
 }
 
-func ToLogResponse(log storeM.Log, items []storeM.LogItem) LogResponse {
+func ToLogResponse(log storeM.Log) LogResponse {
 	// Create a new response
 	response := LogResponse{
 		Id:          log.Id,
@@ -77,11 +76,41 @@ func ToLogResponse(log storeM.Log, items []storeM.LogItem) LogResponse {
 		Category:    log.Category.String(),
 		ShortDesc:   log.ShortDesc,
 	}
+	return response
+}
 
-	// Add items to response
+type FullLogResponse struct {
+	Id          int               `json:"id"`
+	Title       string            `json:"title"`
+	Date        time.Time         `json:"date"`
+	ThumbnailId int               `json:"thumbnail_id"`
+	Category    string            `json:"category"`
+	ShortDesc   string            `json:"short_desc"`
+	Items       []LogItemResponse `json:"items"`
+	Comments    []CommentResponse `json:"comments"`
+}
+
+func ToFullLogResponse(log storeM.Log, items []storeM.LogItem, comments []storeM.Comment, usernames map[int]string) FullLogResponse {
+	itemsResponse := []LogItemResponse{}
 	for _, item := range items {
-		response.Items = append(response.Items, ToLogItemResponse(item))
+		itemsResponse = append(itemsResponse, ToLogItemResponse(item))
 	}
 
+	commentsResponse := []CommentResponse{}
+	for _, comment := range comments {
+		commentsResponse = append(commentsResponse, ToCommentResponse(comment, usernames[comment.UserId]))
+	}
+
+	// Create a new response
+	response := FullLogResponse{
+		Id:          log.Id,
+		Title:       log.Title,
+		Date:        log.Date,
+		ThumbnailId: log.ThumbnailId,
+		Category:    log.Category.String(),
+		ShortDesc:   log.ShortDesc,
+		Items:       itemsResponse,
+		Comments:    commentsResponse,
+	}
 	return response
 }

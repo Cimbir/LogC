@@ -57,8 +57,13 @@ func SaveComment(c *fiber.Ctx, _appdata *utils.AppData) error {
 		return c.Status(400).SendString("Cannot parse JSON")
 	}
 
+	userIdNum, ok := userId.(int)
+	if !ok {
+		return c.Status(500).SendString("Failed to convert userId")
+	}
+
 	// Convert to model
-	commentModel := apiM.FromCommentRequest(comment)
+	commentModel := apiM.FromCommentRequest(comment, userIdNum)
 
 	// Save comment
 	id, err := _appdata.Comments.Add(commentModel)

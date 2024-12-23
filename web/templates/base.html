@@ -12,8 +12,9 @@
     <main>
         {{block "content" .}} {{end}}
     </main>
-    {{block "script" .}} {{end}}
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="./static/js/header.js"></script>
+    {{block "script" .}} {{end}}
 </body>
 </html>

@@ -29,9 +29,9 @@ func GetLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 		}
 
 		// Convert to response
-		var response []apiM.LogResponse
+		response := []apiM.LogResponse{}
 		for _, log := range logs {
-			response = append(response, apiM.ToLogResponse(log, []storeM.LogItem{}))
+			response = append(response, apiM.ToLogResponse(log))
 		}
 
 		// Return the logs
@@ -50,13 +50,41 @@ func GetLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 		}
 
 		// Get the log items from the database
-		log_items, err := _appdata.LogItems.GetByField("log_id", id)
+		logItems, err := _appdata.LogItems.GetByField("log_id", id)
 		if err != nil {
 			return c.Status(500).SendString("Error getting log items")
 		}
 
+		// Get the comments from the database
+		comments, err := _appdata.Comments.GetByField("log_id", id)
+		if err != nil {
+			return c.Status(500).SendString("Error getting comments")
+		}
+
+		// Get the usernames from the database
+		usernames := map[int]string{}
+		for _, comment := range comments {
+			if _, ok := usernames[comment.UserId]; ok {
+				continue
+			}
+			user, err := _appdata.Users.GetByID(comment.UserId)
+			if err != nil {
+				return c.Status(500).SendString("Error getting user")
+			}
+			usernames[comment.UserId] = user.Username
+		}
+
+		// Order comments by date
+		for i := 0; i < len(comments); i++ {
+			for j := i + 1; j < len(comments); j++ {
+				if comments[j].Date.After(comments[i].Date) {
+					comments[i], comments[j] = comments[j], comments[i]
+				}
+			}
+		}
+
 		// Create a new response
-		response := apiM.ToLogResponse(log, log_items)
+		response := apiM.ToFullLogResponse(log, logItems, comments, usernames)
 
 		// Return the log
 		return c.JSON(response)

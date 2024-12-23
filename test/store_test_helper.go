@@ -1,7 +1,7 @@
 package test
 
 import (
-	"LogC/internal/models"
+	models "LogC/internal/models/store"
 	"LogC/internal/store"
 	"context"
 	"testing"

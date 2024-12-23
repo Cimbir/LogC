@@ -27,17 +27,17 @@
         if (document.getElementById('inputType').value == 'text') {
             contentInp = document.createElement('textarea');
             typeInp = document.createElement('input');
-            typeInp.value = '0';
+            typeInp.value = 'Text';
         } else if (document.getElementById('inputType').value == 'image') {
             contentInp = document.createElement('input');
             contentInp.type = 'file';
             typeInp = document.createElement('input');
-            typeInp.value = '1';
+            typeInp.value = 'Image';
         } else if(document.getElementById('inputType').value == 'title') {
             contentInp = document.createElement('input');
             contentInp.placeholder = 'title';
             typeInp = document.createElement('input');
-            typeInp.value = '2';
+            typeInp.value = 'Title';
         }
         contentInp.name = 'item' + id;
         typeInp.name = 'type' + id;
@@ -67,28 +67,30 @@
         });
     }
 
-    document.getElementById('add-log').addEventListener('click', async function(event) {
+    $('#add-log').on('click', async function(event) {
         event.preventDefault();
 
         var log = {
-            title: document.getElementById('title').value,
-            date: new Date().toISOString(),
+            title: $('#title').val(),
+            thumbnail_id: 1,
+            category: "Tech",
+            short_desc: "Short description",
             items: []
         };
 
         for (var i = 0; i < id; i++) {
-            typeEl = document.getElementsByName('type' + i)[0];
-            itemEl = document.getElementsByName('item' + i)[0];
-            
-            if (!typeEl || !itemEl) continue;
+            var typeEl = $('input[name="type' + i + '"]').first();
+            var itemEl = $('[name="item' + i + '"]').first();
+
+            if (!typeEl.length || !itemEl.length) continue;
 
             var item = {
-            type: parseInt(typeEl.value),
-            content: itemEl.value
+                type: typeEl.val(),
+                content: itemEl.val()
             };
 
-            if (typeEl.value == 1) {
-                var file = itemEl.files[0];
+            if (typeEl.val() == "Image") {
+                var file = itemEl[0].files[0];
                 if (!file) continue;
                 const base64String = await readFileAsDataURL(file);
                 item.content = base64String;
@@ -97,20 +99,18 @@
             log.items.push(item);
         }
 
-        fetch('/api/logs/add', {
+        $.ajax({
+            url: '/api/logs/add',
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
+            contentType: 'application/json',
+            data: JSON.stringify(log),
+            success: function(data) {
+                console.log('Success adding log:', data);
+                window.location.href = '/';
             },
-            body: JSON.stringify(log)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success adding log:', data);
-            window.location.href = '/';
-        })
-        .catch((error) => {
-            console.error('Error adding log:', error);
+            error: function(error) {
+                console.error('Error adding log:', error);
+            }
         });
     });
 </script>

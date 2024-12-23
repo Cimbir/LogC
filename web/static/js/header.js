@@ -17,27 +17,3 @@ fetch(`/api/users/isAdmin`)
         }
     }
 )
-
-function myFunc() {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve('Hello');
-        }, 1000);
-    }
-    )
-}
-
-myFunc()
-.then((data) => {
-    console.log(data);
-    return data;
-})
-.then((data) => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            reject('World');
-        }, 2000);
-    })})
-.catch((data) => {
-    console.log(data);
-});

@@ -2,7 +2,8 @@ package test
 
 import (
 	"LogC/internal/handlers"
-	"LogC/internal/models"
+	apiM "LogC/internal/models/api"
+	storeM "LogC/internal/models/store"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -23,16 +24,16 @@ func GetLogTestHelper(t *testing.T, stp setuphandler) {
 	app := fiber.New()
 
 	// Add a log to the database for testing
-	log := models.Log{Title: "Test Log", Date: time.Now()}
+	log := storeM.Log{Title: "Test Log", Date: time.Now()}
 	id, err := appData.Logs.Add(log)
 	if err != nil {
 		t.Fatalf("Failed to add log: %v", err)
 	}
 
 	// Add items to the database for testing
-	items := []models.LogItem{
-		{LogId: id, Type: models.Title, Content: "Description 1"},
-		{LogId: id, Type: models.Text, Content: "Description 2"},
+	items := []storeM.LogItem{
+		{LogId: id, Type: storeM.Title, Content: "Description 1"},
+		{LogId: id, Type: storeM.Text, Content: "Description 2"},
 	}
 	for i, item := range items {
 		_, err := appData.LogItems.Add(item)
@@ -56,7 +57,7 @@ func GetLogTestHelper(t *testing.T, stp setuphandler) {
 	// Check the response
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var returnedLog handlers.LogResponse
+	var returnedLog apiM.LogResponse
 	if err := json.NewDecoder(resp.Body).Decode(&returnedLog); err != nil {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
@@ -68,7 +69,7 @@ func GetLogTestHelper(t *testing.T, stp setuphandler) {
 	// Test getting all logs
 
 	// Add new log
-	log = models.Log{Title: "Test Log 2", Date: time.Now()}
+	log = storeM.Log{Title: "Test Log 2", Date: time.Now()}
 	id, err = appData.Logs.Add(log)
 	if err != nil {
 		t.Fatalf("Failed to add log: %v", err)
@@ -84,7 +85,7 @@ func GetLogTestHelper(t *testing.T, stp setuphandler) {
 	// Check the response
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var returnedLogs []handlers.LogResponse
+	var returnedLogs []apiM.LogResponse
 	if err := json.NewDecoder(resp.Body).Decode(&returnedLogs); err != nil {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
@@ -111,7 +112,7 @@ func SaveLogTestHelper(t *testing.T, stp setuphandler) {
 	})
 
 	// Create a log to save
-	log := handlers.LogRequest{Title: "New Log", Items: []handlers.LogItemRequest{
+	log := apiM.LogRequest{Title: "New Log", Items: []apiM.LogItemRequest{
 		{Type: "Title", Content: "Title"},
 		{Type: "Text", Content: "Description"},
 	}}

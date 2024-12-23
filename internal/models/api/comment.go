@@ -8,14 +8,13 @@ import (
 // Request format
 
 type CommentRequest struct {
-	UserId  int    `json:"user_id"`
 	LogId   int    `json:"log_id"`
 	Content string `json:"content"`
 }
 
-func FromCommentRequest(comment CommentRequest) storeM.Comment {
+func FromCommentRequest(comment CommentRequest, userid int) storeM.Comment {
 	return storeM.Comment{
-		UserId:  comment.UserId,
+		UserId:  userid,
 		LogId:   comment.LogId,
 		Content: comment.Content,
 		Date:    time.Now(),

@@ -101,10 +101,20 @@ func IsLoggedIn(c *fiber.Ctx, _appdata *utils.AppData) error {
 	sesh := c.Locals("session").(*session.Session)
 	userId := sesh.Get("userId")
 	if userId == nil {
-		return c.JSON(fiber.Map{"isLoggedIn": false})
+		return c.JSON(fiber.Map{"id": "-1", "username": ""})
 	}
 
-	return c.JSON(fiber.Map{"isLoggedIn": true})
+	userIdInt := userId.(int)
+	loggedInUser, err := _appdata.Users.GetByID(userIdInt)
+	if err != nil {
+		return c.Status(500).SendString("Error getting user")
+	}
+
+	if loggedInUser.Id == 0 {
+		return c.JSON(fiber.Map{"id": "-1", "username": ""})
+	}
+
+	return c.JSON(fiber.Map{"id": userId, "username": loggedInUser.Username})
 }
 
 func GetUser(c *fiber.Ctx, _appdata *utils.AppData) error {

@@ -2,7 +2,7 @@ package test
 
 import (
 	"LogC/internal/handlers"
-	"LogC/internal/models"
+	storeM "LogC/internal/models/store"
 	"LogC/internal/utils"
 	"bytes"
 	"encoding/json"
@@ -26,21 +26,21 @@ func GetCommentsTestHelper(t *testing.T, stp setuphandler) {
 	app := fiber.New()
 
 	// Add a log to the database for testing
-	log := models.Log{Title: "Test Log", Date: time.Now()}
+	log := storeM.Log{Title: "Test Log", Date: time.Now()}
 	logId, err := appData.Logs.Add(log)
 	if err != nil {
 		t.Fatalf("Failed to add log: %v", err)
 	}
 
 	// Add user to the database for testing
-	user := models.User{Username: "Test	User", Password: "password"}
+	user := storeM.User{Username: "Test	User", Password: "password"}
 	userId, err := appData.Users.Add(user)
 	if err != nil {
 		t.Fatalf("Failed to add user: %v", err)
 	}
 
 	// Add comment to the database for testing
-	comment := models.Comment{LogId: logId, UserId: userId, Content: "Test Comment"}
+	comment := storeM.Comment{LogId: logId, UserId: userId, Content: "Test Comment"}
 	commentId, err := appData.Comments.Add(comment)
 	if err != nil {
 		t.Fatalf("Failed to add comment: %v", err)
@@ -62,7 +62,7 @@ func GetCommentsTestHelper(t *testing.T, stp setuphandler) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Decode the response
-	var returnedComments []models.Comment
+	var returnedComments []storeM.Comment
 	if err := json.NewDecoder(resp.Body).Decode(&returnedComments); err != nil {
 		t.Fatalf("Failed to decode response: %v", err)
 	}
@@ -76,14 +76,14 @@ func SaveCommentTestHelper(t *testing.T, stp setuphandler) {
 	defer td()
 
 	// Add log to the database for testing
-	log := models.Log{Title: "Test Log", Date: time.Now()}
+	log := storeM.Log{Title: "Test Log", Date: time.Now()}
 	logId, err := appData.Logs.Add(log)
 	if err != nil {
 		t.Fatalf("Failed to add log: %v", err)
 	}
 
 	// Add user to the database for testing
-	user := models.User{Username: "Test User", Password: "password"}
+	user := storeM.User{Username: "Test User", Password: "password"}
 	userId, err := appData.Users.Add(user)
 	if err != nil {
 		t.Fatalf("Failed to add user: %v", err)
@@ -104,7 +104,7 @@ func SaveCommentTestHelper(t *testing.T, stp setuphandler) {
 	})
 
 	// Create a comment to save
-	comment := models.Comment{LogId: logId, UserId: userId, Content: "Test Comment"}
+	comment := storeM.Comment{LogId: logId, UserId: userId, Content: "Test Comment"}
 	commentJSON, err := json.Marshal(comment)
 	if err != nil {
 		t.Fatalf("Failed to marshal comment: %v", err)
