@@ -3,7 +3,8 @@ package handlers
 import (
 	models "LogC/internal/models/store"
 	"LogC/internal/utils"
-	"encoding/base64"
+	"fmt"
+	"io"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -37,6 +38,8 @@ func GetData(c *fiber.Ctx, _appdata *utils.AppData) error {
 // input - json with field "data" containing base64 encoded data
 // saves in byte array format
 func SaveData(c *fiber.Ctx, _appdata *utils.AppData) error {
+	fmt.Println("ENTERED")
+
 	// Check if user is admin
 	sesh := c.Locals("session").(*session.Session)
 	isAdmin := sesh.Get("isAdmin")
@@ -44,22 +47,30 @@ func SaveData(c *fiber.Ctx, _appdata *utils.AppData) error {
 		return c.Status(403).SendString("Forbidden")
 	}
 
-	// Input JSON template
-	var requestData struct {
-		Data string `json:"data"`
-	}
-
-	// Parse JSON
-	if err := c.BodyParser(&requestData); err != nil {
-		return c.Status(400).SendString("Cannot parse JSON")
-	}
-
-	// Decode base64 data
-	decodedData, err := base64.StdEncoding.DecodeString(requestData.Data)
+	fmt.Println("first")
+	// Get file from form-data
+	file, err := c.FormFile("file")
 	if err != nil {
-		return c.Status(400).SendString("Invalid base64 data")
+		return c.Status(400).SendString("Failed to get file from form-data")
 	}
-	data := models.LogData{Data: decodedData}
+
+	fmt.Println("second")
+	// Open the file
+	fileContent, err := file.Open()
+	if err != nil {
+		return c.Status(500).SendString("Failed to open file")
+	}
+	defer fileContent.Close()
+
+	fmt.Println("third")
+	// Read file content
+	fileBytes, err := io.ReadAll(fileContent)
+	if err != nil {
+		return c.Status(500).SendString("Failed to read file content")
+	}
+
+	fmt.Println("fourth")
+	data := models.LogData{Data: fileBytes}
 
 	// Save data
 	id, err := _appdata.LogDataCol.Add(data)

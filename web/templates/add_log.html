@@ -30,6 +30,30 @@
 
 {{define "script"}}
 <script>
+    function uploadFile(file) {
+        var formData = new FormData();
+        formData.append('file', file);
+
+        return new Promise((resolve, reject) => {
+            $.ajax({
+            url: '/api/data/add',
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            data: formData,
+            
+            success: function(data) {
+                console.log('Success uploading file:', data);
+                resolve(data);
+            },
+            error: function(error) {
+                console.error('Error uploading file:', error);
+                reject(error);
+            }
+            });
+        });
+    }
+
     var id = 0;
     document.getElementById('addTextareaBtn').addEventListener('click', function() {
         var newItemDiv = document.createElement('div');
@@ -73,35 +97,26 @@
         document.getElementById('amount').value = ++id;
     });
 
-    async function readFileAsDataURL(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]); // Get base64 string
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
     $('#add-log').on('click', async function(event) {
         event.preventDefault();
 
+        var formData = new FormData();
+
         var log = {
             title: $('#title').val(),
-            thumbnail: "",
             category: $('#category').val(),
             short_desc: $('#short_desc').val(),
-            items: []
+            items: [],
+            thumbnail_id: -1
         };
 
         var thumbnail = $('#thumbnail').first()[0].files[0];
-        thumbnail.name = encodeURIComponent(thumbnail.name);
         if (!thumbnail) {
             alert('Please select a thumbnail');
             return;
         }
-        const thumbnailBase64String = await readFileAsDataURL(thumbnail);
-        log.thumbnail = thumbnailBase64String;
-
+        log.thumbnail_id = (await uploadFile(thumbnail)).id;
+        
         for (var i = 0; i < id; i++) {
             var typeEl = $('input[name="type' + i + '"]').first();
             var itemEl = $('[name="item' + i + '"]').first();
@@ -110,20 +125,19 @@
 
             var item = {
                 type: typeEl.val(),
-                content: itemEl.val()
+                content: itemEl.val(),
             };
 
             if (typeEl.val() == "Image") {
                 var file = itemEl[0].files[0];
                 if (!file) continue;
-                const base64String = await readFileAsDataURL(file);
-                item.content = base64String;
+                item.content = (await uploadFile(file)).id.toString();
             }
 
             log.items.push(item);
         }
 
-        console.log(JSON.stringify(log));
+        console.log(log);
         $.ajax({
             url: '/api/logs/add',
             method: 'POST',

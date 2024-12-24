@@ -22,18 +22,18 @@ func FromLogItemRequest(item LogItemRequest, order int, logId int) storeM.LogIte
 }
 
 type LogRequest struct {
-	Title     string           `json:"title"`
-	Thumbnail string           `json:"thumbnail"`
-	Category  string           `json:"category"`
-	ShortDesc string           `json:"short_desc"`
-	Items     []LogItemRequest `json:"items"`
+	Title       string           `json:"title"`
+	ThumbnailId int              `json:"thumbnail_id"`
+	Category    string           `json:"category"`
+	ShortDesc   string           `json:"short_desc"`
+	Items       []LogItemRequest `json:"items"`
 }
 
-func FromLogRequest(log LogRequest, thumbnailId int) storeM.Log {
+func FromLogRequest(log LogRequest) storeM.Log {
 	return storeM.Log{
 		Title:       log.Title,
 		Date:        time.Now(),
-		ThumbnailId: thumbnailId,
+		ThumbnailId: log.ThumbnailId,
 		Category:    storeM.GetLogCategory(log.Category),
 		ShortDesc:   log.ShortDesc,
 	}
