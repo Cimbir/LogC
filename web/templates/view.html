@@ -3,14 +3,209 @@
 {{end}}
 
 {{define "content"}}
-<div>
-    <h1>Log ID: {{.ID}}</h1>
-    <!-- You can use the id variable here -->
-</div>
 {{end}}
 
 {{define "script"}}
 <script>
+    isAdmin = false;
+    loggedInId = -1;
+    loggedInUsername = "";
 
+    function getDeleteButton(logDetails) {
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'log-view-delete-button';
+        deleteButton.innerHTML = 'Delete';
+        deleteButton.addEventListener('click', function() {
+            fetch(`/api/logs/delete/${logDetails.id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Log deleted successfully');
+                    window.location.href = '/timeline';
+                } else {
+                    alert('Failed to delete log');
+                }
+            })
+            .catch(error => console.error('Error deleting log:', error));
+        });
+        return deleteButton
+    }
+
+    function makeComment(comment) {
+        commentItem = document.createElement('div');
+        commentItem.className = 'comment-item';
+        commentItem.id = "c"+comment.id;
+        commentItem.innerHTML = `
+            <p class="comment-user">${comment.username}</p>
+            <p class="comment-text">${comment.content}</p>
+            <p class="comment-timestamp">${new Date(comment.date).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</p>
+        `;
+        return commentItem;
+    }
+
+    // Run when page is loaded
+    $(document).ready(function() {
+        const main = $('main');
+
+        // Save to know if the user is admin
+        $.ajax({
+            url: '/api/users/isAdmin',
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                isAdmin = data.isAdmin;
+            },
+            error: function() {
+                console.error('Error fetching admin status');
+            }
+        });
+        // Save to know if the user is logged in
+        $.ajax({
+            url: '/api/users/isLoggedIn',
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                loggedInId = data.id;
+                loggedInUsername = data.username;
+            },
+            error: function() {
+                console.error('Error fetching logged in user');
+            }
+        });
+
+        // Display the view of the log
+        $.ajax({
+            url: `/api/logs/get/`+{{.ID}},
+            method: 'GET',
+            dataType: 'json',
+            success: function(logDetails) {
+                // Display log details
+                console.log(logDetails);
+                const view = $('<div>', {
+                    class: 'log-view',
+                    id: logDetails.id
+                });
+
+
+
+                // Overview
+                const overview = $('<div>', { class: 'log-view-overview' });
+                const thumbnail = $('<img>', {
+                    class: 'log-view-thumbnail',
+                    src: `/api/data/get/${logDetails.thumbnail_id}`,
+                    alt: 'Thumbnail'
+                });
+                const title = $('<h1>', {
+                    class: 'log-view-main-title',
+                    text: logDetails.title
+                });
+                const date = $('<p>', {
+                    class: 'log-view-date',
+                    text: new Date(logDetails.date).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+                });
+                const shortDesc = $('<p>', {
+                    class: 'log-view-short-desc',
+                    text: logDetails.short_desc
+                });
+                overview.append(thumbnail, title, date, $('<hr>'), shortDesc);
+                view.append(overview);
+
+
+
+                // Items
+                const items = $('<div>', { class: 'log-view-items' });
+                logDetails.items.map(function(item) {
+                    if (item.type === "Text") {
+                        items.append($('<p>', {
+                            class: 'log-view-item log-view-text',
+                            text: item.content
+                        }));
+                    } else if (item.type === "Image") {
+                        items.append($('<img>', {
+                            class: 'log-view-item log-view-image',
+                            src: `/api/data/get/${item.content}`,
+                            alt: 'Image'
+                        }));
+                    } else if (item.type === "Title") {
+                        items.append($('<h3>', {
+                            class: 'log-view-item log-view-title',
+                            text: item.content
+                        }));
+                    } else if (item.type === "Quote") {
+                        items.append($('<blockquote>', {
+                            class: 'log-view-item log-view-quote',
+                            text: item.content
+                        }));
+                    }
+                });
+                view.append(items);
+
+
+
+                // Comment section
+                const commentSection = $('<div>', { id: 'comment-section' });
+                const commentSectionForm = $('<div>', { id: 'comment-section-form' });
+                const commentSectionList = $('<div>', { id: 'comment-section-list' });
+
+                if (loggedInId !== -1) {
+                    const commentInput = $('<textarea>', {
+                        type: 'text',
+                        placeholder: 'Comment'
+                    });
+                    commentInput.on('input', function() {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                    });
+                    const commentSendButton = $('<button>', {
+                        text: 'Send',
+                        click: function() {
+                            $.ajax({
+                                url: '/api/comments/add',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    log_id: logDetails.id,
+                                    content: commentInput.val()
+                                }),
+                                success: function() {
+                                    alert('Comment added successfully');
+                                    const commentItem = makeComment({
+                                        id: -1,
+                                        username: loggedInUsername,
+                                        content: commentInput.val(),
+                                        date: new Date()
+                                    });
+                                    commentInput.val('');
+                                    commentInput.css('height', 'auto');
+                                    commentSectionList.prepend(commentItem);
+                                },
+                                error: function() {
+                                    alert('Failed to add comment');
+                                }
+                            });
+                        }
+                    });
+                    commentSectionForm.append(commentInput, commentSendButton);
+                }
+
+                logDetails.comments.forEach(function(comment) {
+                    const commentItem = makeComment(comment);
+                    commentSectionList.append(commentItem);
+                });
+                commentSection.append(commentSectionForm, $('<hr>'), commentSectionList);
+                view.append(commentSection);
+
+
+
+                if(isAdmin) view.append(getDeleteButton(logDetails));
+
+                main.html(view);
+            },
+            error: function() {
+                console.error('Error fetching log details');
+            }
+        });
+    });
 </script>
 {{end}}

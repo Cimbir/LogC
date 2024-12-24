@@ -89,7 +89,7 @@
 
   /* thumbnail of the card */
   .thumbnail {
-    width: 300px;
+    width: 400px;
     height: 300px;
     object-fit: cover;
     border-radius: 10px;
