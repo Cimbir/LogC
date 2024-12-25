@@ -3,214 +3,62 @@
 {{end}}
 
 {{define "content"}}
-<div id="container">
-    <section id="log-timeline">
-        <ul class="rb" id="timeline-list">
-            <!-- Timeline items will be added here -->
-        </ul>  
-    </section>
-    <section id="log-view">
-        <!-- Log details will be added here -->
-    </section>
-</div>
+<section class="title-section">
+    <h1>Welcome to LogC</h1>
+    <p>A blogging website for mostly personal use</p>
+</section>
+
+<section class="category-lists">
+    <h1>Categories</h1>
+    <hr style="width: 97%">
+</section>
 {{end}}
 
 {{define "script"}}
 <script>
-    isAdmin = false;
-    loggedInId = -1;
-    loggedInUsername = "";
+$(document).ready(function() {
+    catLists = $('.category-lists');
 
-    function getDeleteButton(logDetails) {
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'log-view-delete-button';
-        deleteButton.innerHTML = 'Delete';
-        deleteButton.addEventListener('click', function() {
-            fetch(`/api/logs/delete/${logDetails.id}`, {
-                method: 'DELETE'
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Log deleted successfully');
-                    // Remove the log item from the timeline
-                    document.getElementById(logDetails.id).remove();
-                    // Clear the log view
-                    logView.innerHTML = '';
-                } else {
-                    alert('Failed to delete log');
-                }
-            })
-            .catch(error => console.error('Error deleting log:', error));
-        });
-        return deleteButton
-    }
+    $.ajax({
+        url: '/api/logs/getCategory/6',
+        method: 'GET',
+        dataType: 'json',
+        success: function(resp) {
+            console.log(resp);
+            console.log(resp.category);
+            $.each(resp.category, function(key, value) {
+                console.log(key);
+                console.log(resp.category[key]);
 
-    function makeComment(comment) {
-        commentItem = document.createElement('div');
-        commentItem.className = 'comment-item';
-        commentItem.id = "c"+comment.id;
-        commentItem.innerHTML = `
-            <p class="comment-user">${comment.username}</p>
-            <p class="comment-text">${comment.content}</p>
-            <p class="comment-timestamp">${new Date(comment.date).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</p>
-        `;
-        return commentItem;
-    }
+                catTitle = $('<h2>').text(key);
+                catHr = $('<hr>');
+                catLogs = $('<div>').addClass('category-logs');
+                resp.category[key].forEach(function(log) {
+                    logCard = $('<div>').addClass('card').css('background-image', 'url(/api/data/get/' + log.thumbnail_id + ')');
+                    logCardContent = $('<div>').addClass('card-content');
+                    logDate = $('<p>').text(new Date(log.date).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short', hour12: false }));
+                    logTitle = $('<h1>').text(log.title);
 
-    // Run when page is loaded
-    $(document).ready(function() {
-        const timelineList = $('#timeline-list');
-        const logView = $('#log-view');
+                    logCardContent.append(logDate);
+                    logCardContent.append(logTitle);
+                    logCard.append(logCardContent);
 
-        // Save to know if the user is admin
-        $.ajax({
-            url: '/api/users/isAdmin',
-            method: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                isAdmin = data.isAdmin;
-            },
-            error: function() {
-                console.error('Error fetching admin status');
-            }
-        });
-        // Save to know if the user is logged in
-        $.ajax({
-            url: '/api/users/isLoggedIn',
-            method: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                loggedInId = data.id;
-                loggedInUsername = data.username;
-            },
-            error: function() {
-                console.error('Error fetching logged in user');
-            }
-        });
-
-
-        // Fetch logs from the API
-        $.ajax({
-            url: '/api/logs/get',
-            method: 'GET',
-            dataType: 'json',
-            success: function(logs) {
-                logs.forEach(function(log) {
-                    // Add element to timeline
-                    const logItem = $('<li>', {
-                        class: 'rb-item log-timeline-item',
-                        id: log.id,
-                        html: `
-                            <div class="timestamp">${new Date(log.date).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</div>
-                            <div class="item-title">${log.title}</div>
-                        `
+                    logCard.click(function() {
+                        window.location.href = '/view/' + log.id;
                     });
-                    timelineList.append(logItem);
 
-                    // Add click event listener to fetch and display log details
-                    logItem.on('click', function() {
-                        $.ajax({
-                            url: `/api/logs/get/${log.id}`,
-                            method: 'GET',
-                            dataType: 'json',
-                            success: function(logDetails) {
-                                // Display log details
-                                console.log(logDetails);
-                                const viewItem = $('<div>', {
-                                    class: 'log-view-item',
-                                    id: logDetails.id
-                                });
-
-
-
-                                // Title
-                                const title = $('<h1>', {
-                                    class: 'log-view-title log-view-main-title',
-                                    text: logDetails.title
-                                });
-
-
-
-                                // Items
-                                const items = logDetails.items.map(function(item) {
-                                    if (item.type === "Text") {
-                                        return `<p class="log-view-text">${item.content}</p>`;
-                                    } else if (item.type === "Image") {
-                                        return `<img class="log-view-image" src="/api/data/get/${item.content}" alt="Image">`;
-                                    } else if (item.type === "Title") {
-                                        return `<h3 class="log-view-title">${item.content}</h3>`;
-                                    }
-                                }).join('');
-
-
-
-                                // Comment section
-                                const commentSection = $('<div>', { id: 'comment-section' });
-                                const commentSectionForm = $('<div>', { id: 'comment-section-form' });
-                                const commentSectionList = $('<div>', { id: 'comment-section-list' });
-
-                                if (loggedInId !== -1) {
-                                    const commentInput = $('<textarea>', {
-                                        type: 'text',
-                                        placeholder: 'Comment'
-                                    });
-                                    const commentSendButton = $('<button>', {
-                                        text: 'Send',
-                                        click: function() {
-                                            $.ajax({
-                                                url: '/api/comments/add',
-                                                method: 'POST',
-                                                contentType: 'application/json',
-                                                data: JSON.stringify({
-                                                    log_id: logDetails.id,
-                                                    content: commentInput.val()
-                                                }),
-                                                success: function() {
-                                                    alert('Comment added successfully');
-                                                    const commentItem = makeComment({
-                                                        id: -1,
-                                                        username: loggedInUsername,
-                                                        content: commentInput.val(),
-                                                        date: new Date()
-                                                    });
-                                                    commentInput.val('');
-                                                    commentSectionList.prepend(commentItem);
-                                                },
-                                                error: function() {
-                                                    alert('Failed to add comment');
-                                                }
-                                            });
-                                        }
-                                    });
-                                    commentSectionForm.append(commentInput, commentSendButton);
-                                }
-
-                                logDetails.comments.forEach(function(comment) {
-                                    const commentItem = makeComment(comment);
-                                    commentSectionList.append(commentItem);
-                                });
-
-                                commentSection.append(commentSectionForm, $('<hr>'), commentSectionList);
-
-                                // Add all to view
-                                viewItem.append(title);
-                                viewItem.append(items);
-                                viewItem.append(commentSection);
-                                if(isAdmin) viewItem.append(getDeleteButton(logDetails));
-
-                                logView.html(viewItem);
-                            },
-                            error: function() {
-                                console.error('Error fetching log details');
-                            }
-                        });
-                    });
+                    catLogs.append(logCard);
                 });
-            },
-            error: function() {
-                console.error('Error fetching logs');
-            }
-        });
+
+                catLists.append(catTitle);
+                catLists.append(catHr);
+                catLists.append(catLogs);
+            });
+        },
+        error: function() {
+            console.error('error fetching logs');
+        }
     });
+})
 </script>
 {{end}}

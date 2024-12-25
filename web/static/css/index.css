@@ -1,178 +1,81 @@
-#container {
-    display: flex;
-    justify-content: space-between;
-    height: 100%;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent-color) var(--secondary-color);
-}
-
-#log-view {
-    z-index: 1;
-    margin-left: auto;
-    width: 80%;
-    height: 100%;
-    padding: 10px;
-}
-
-.log-view-item {
-    padding: 0 50px;
-    color: var(--text-color);
-}
-
-.log-view-main-title {
+.title-section {
     text-align: center;
-    font-size: 42px;
-    margin: 50px;
+    height: 50vh;
+    color: var(--on-background);
+    padding: 25vh;
 }
 
-.log-view-title {
-    text-align: center;
-    margin-bottom: 20px;
-    margin-top: 40px;
+.title-section h1 {
+    font-size: 100px;
+}
+
+.title-section p {
     font-size: 30px;
+    opacity: 0.5;
+    margin: 10vh;
 }
 
-.log-view-text {
-    background-color: white;
-    padding: 10px;
-    margin: 20px;
-    line-height: 1.6;
-    text-indent: 2em;
-}
-
-.log-view-image {
-    height: 600px;
-    display: block;
-    margin: 20px auto;
-    border: 5px solid var(--text-color);
-    border-top: none;
-    border-bottom: none;
-}
-
-/* --------------------------------- */
-/* Timeline */
-
-#log-timeline {
-    z-index: 100;
-    width: 17%;
-    height: 100%;
-    background-color: var(--secondary-color);
-    padding: 20px;
-    position: fixed;
-    bottom: 0;
-}
-
-#log-timeline ul.rb {
-    padding: 10px;
-    padding-top: 20px;
-    margin-top: 20px;
-}
-  
-#log-timeline ul.rb li {
-    list-style: none;
+/* Category lists */
+.category-lists {
     margin: auto;
-    min-height: 50px;
-    border-left: 1px dashed var(--accent-color);
-    padding: 0 0 20px 30px;
-    position: relative;
-}
-  
-#log-timeline ul.rb li:last-child {
-    border-left: 0;
-}
-  
-#log-timeline ul.rb li::before {
-    position: absolute;
-    left: -10.5px;
-    content: " ";
-    background: white;
-    height: 20px;
-    width: 20px;
-}
-  
-#log-timeline ul.rb li:hover::before {
-    background: var(--accent-color);
-}
-  
-ul.rb li .timestamp {
-    position: relative;
-    font-size: 12px;
-}
-  
-.item-title {
-    font-style: italic;
-    font-weight: bold;
-    word-wrap: break-word;
+    width: 100%;
 }
 
-/* --------------------------------- */
-/* Comments */
-#comment-section {
-    background-color: var(--accent-color);
-    padding: 10px;
-    width: 90%;
-    display: block;
-    margin: 10px auto;
+.category-lists hr {
+    margin: auto;
+    width: 95%;
 }
 
-#comment-section-form {
-
+.category-lists h1 {
+    color: var(--on-background);
+    padding: 30px;
+    font-size: 50px;
 }
 
-#comment-section-form textarea {
-    width: 97%;
-    height: 60px;
-    margin: 10px auto;
-    display: block;
-    padding: 10px;
-    font-size: 16px;
+.category-lists h2 {
+    color: var(--on-background);
+    padding: 30px 70px;
+    font-size: 35px;
 }
 
-#comment-section-form button {
-    margin: 10px auto;
-    padding: 10px;
-    display: block;
-    text-align: center;
-    border: none;
-    background-color: var(--primary-color);
-    width: 50%;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-#comment-section-form button:hover {
-    filter: brightness(1.1);
-}
-
-#comment-section-list {
-
-}
-
-.comment-item {
-    background-color: var(--primary-color);
-    padding: 10px;
-    margin: 10px;
-    border-radius: 10px;
+.category-logs {
+    display: inline;
+    width: 92%;
+    margin: auto;
     display: flex;
-    align-items: left;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
-.comment-user {
-    width: 10%;
+.card {
+    width: 500px;
+    height: 350px;
+    background-position: center;
+    background-size: cover;
+    margin: 22px;
+    
+    display: flex;
+    flex-direction: column-reverse;
+    transition: transform 0.2s ease-in-out;
+    color: var(--on-background);
 }
 
-.comment-text {
-    width: 80%;
+.card:hover {
+    transform: scale(1.1);
 }
 
-.comment-timestamp {
-    font-size: 12px;
+.card-content {
+    background-color: var(--surface);
+    background-color: rgba(50, 50, 50, 0.8);
+    color: var(--on-surface);
+    padding: 15px;
 }
 
-.log-view-delete-button {
-    text-align: center;
-    width: 20%;
-    margin: auto;
-    display: block;
+.card h1 {
+    font-size: 30px;
+    margin: 0;
+}
+
+.card p {
+    font-size: 20px;
 }

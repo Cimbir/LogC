@@ -54,7 +54,8 @@ header nav a:hover {
 }
 
 main {
-    margin-left: 75px;
     z-index: 0;
     height: 100vh;
+    margin-left: 100px;
+    right: 0;
 }

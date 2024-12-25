@@ -123,6 +123,7 @@ func main() {
 	app.Get("/api/logs/get/:id?", handler_wrapper(handlers.GetLog))
 	app.Post("/api/logs/add", handler_wrapper(handlers.SaveLog))
 	app.Delete("/api/logs/delete/:id", handler_wrapper(handlers.DeleteLog))
+	app.Get("/api/logs/getCategory/:amount?", handler_wrapper(handlers.GetCategoryLogs))
 	// Data
 	app.Get("/api/data/get/:id", handler_wrapper(handlers.GetData))
 	app.Post("/api/data/add", handler_wrapper(handlers.SaveData))

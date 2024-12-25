@@ -73,13 +73,9 @@ func GetLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 			usernames[comment.UserId] = user.Username
 		}
 
-		// Order comments by date
-		for i := 0; i < len(comments); i++ {
-			for j := i + 1; j < len(comments); j++ {
-				if comments[j].Date.After(comments[i].Date) {
-					comments[i], comments[j] = comments[j], comments[i]
-				}
-			}
+		// Reverse the comments
+		for i, j := 0, len(comments)-1; i < j; i, j = i+1, j-1 {
+			comments[i], comments[j] = comments[j], comments[i]
 		}
 
 		// Create a new response
@@ -182,4 +178,35 @@ func DeleteLog(c *fiber.Ctx, _appdata *utils.AppData) error {
 
 	// Return the log
 	return c.SendStatus(200)
+}
+
+func GetCategoryLogs(c *fiber.Ctx, _appdata *utils.AppData) error {
+	// Get the amount to get
+	amount := c.Params("amount")
+	if amount == "" {
+		amount = "10"
+	}
+
+	// Convert the amount to an integer
+	amountInt, err := strconv.Atoi(amount)
+	if err != nil {
+		return c.Status(400).SendString("Invalid amount")
+	}
+
+	// Get all logs
+	logs, err := _appdata.Logs.GetAll()
+	if err != nil {
+		return c.Status(500).SendString("Error getting logs")
+	}
+
+	// Reverse the logs
+	for i, j := 0, len(logs)-1; i < j; i, j = i+1, j-1 {
+		logs[i], logs[j] = logs[j], logs[i]
+	}
+
+	// Convert to response
+	response := apiM.ToLogByCategoryResponse(logs, amountInt)
+
+	// Return the logs
+	return c.JSON(response)
 }

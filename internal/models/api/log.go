@@ -114,3 +114,23 @@ func ToFullLogResponse(log storeM.Log, items []storeM.LogItem, comments []storeM
 	}
 	return response
 }
+
+type LogByCategoryResponse struct {
+	Category map[string][]LogResponse `json:"category"`
+}
+
+func ToLogByCategoryResponse(logs []storeM.Log, amount int) LogByCategoryResponse {
+	response := LogByCategoryResponse{
+		Category: map[string][]LogResponse{},
+	}
+	for _, log := range logs {
+		if _, ok := response.Category[log.Category.String()]; !ok {
+			response.Category[log.Category.String()] = []LogResponse{}
+		}
+		if len(response.Category[log.Category.String()]) >= amount {
+			continue
+		}
+		response.Category[log.Category.String()] = append(response.Category[log.Category.String()], ToLogResponse(log))
+	}
+	return response
+}
